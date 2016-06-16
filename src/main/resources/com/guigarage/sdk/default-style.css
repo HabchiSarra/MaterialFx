@@ -2,6 +2,7 @@
 .root {
     -fx-basic-color: red;
     -fx-darker-color: derive(-fx-basic-color, -40% );
+    -fx-bit-lighter-color: derive(-fx-basic-color, 10% );
     -fx-lighter-color: derive(-fx-basic-color, 80% );
     -fx-lightest-color: derive(-fx-basic-color, 95% );
     -fx-dark-text-color: rgb(47.0, 52.0, 57.0);
@@ -11,7 +12,7 @@
 }
 
 .text {
-    -fx-font-family: 'Roboto';
+    -fx-font-family: 'Museo Slab 500';
 }
 
 .icon-label .text {
@@ -51,7 +52,8 @@
 
 .application-toolbar {
     -fx-background-color: -fx-basic-color;
-    -fx-padding: 4px;
+    -fx-padding: 10px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);
 }
 
 
@@ -61,6 +63,7 @@
 
 .base-toolbar > .text {
     -fx-fill: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);
 
 }
 
@@ -221,7 +224,7 @@
 #application-menu-button {
     -fx-border-color: null;
     -fx-background-color: null;
-    -fx-font-size: 22px;
+    -fx-font-size: 30px;
     -fx-text-fill: white;
 }
 
@@ -487,12 +490,12 @@
 }
 
 .global-action-button {
-    -fx-padding: 12px;
+    -fx-padding: 3px;
 }
 
 .global-action-button-background {
-    -fx-fill: -fx-lighter-color;
-    -fx-effect: dropshadow(gaussian, #000000dd, 8, 0.4, 0, 0);
+    -fx-fill: -fx-bit-lighter-color;
+    -fx-effect: dropshadow(gaussian, #3c3c3cdd, 8, 0.4, 0, 0);
 }
 
 .global-action-button:disabled > .global-action-button-background {
@@ -510,7 +513,7 @@
 
 .global-action-button > .button .text {
     -fx-font-family: FontAwesome !important;
-    -fx-font-size: 36px;
+    -fx-font-size: 30px;
     -fx-fill: white !important;
 }
 

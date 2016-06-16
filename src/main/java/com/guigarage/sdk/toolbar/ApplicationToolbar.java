@@ -13,13 +13,12 @@ public class ApplicationToolbar extends BaseToolbar {
 
     public ApplicationToolbar() {
         getStyleClass().add("application-toolbar");
-
         menuButton = new Button();
         menuButton.setId("application-menu-button");
         menuButton.setText(FontAwesomeIcons.NAV.getText());
         menuButton.setOnMouseEntered(e -> {
-            menuButton.setScaleX(1.1);
-            menuButton.setScaleY(1.1);
+            menuButton.setScaleX(1.05);
+            menuButton.setScaleY(1.05);
         });
         menuButton.setOnMouseExited(e -> {
             menuButton.setScaleX(1.0);

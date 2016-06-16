@@ -13,8 +13,9 @@ public enum FontAwesomeIcons implements FontBasedIcon {
     NAV("\uf0c9"),
     PHONE("\uf095"),
     SEARCH("\uf002"),
-    VOLUMNE_DOWN("\uf027"),
-    VOLUMNE_UP("\uf028");
+    VOLUMNE_DOWN("\uf103"),
+    VOLUMNE_UP("\uf102"),
+    INFO("\uf016");
 
     private String text;
 

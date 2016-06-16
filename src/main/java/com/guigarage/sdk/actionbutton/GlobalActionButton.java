@@ -73,8 +73,11 @@ public class GlobalActionButton extends HBox {
         maxHeight(USE_PREF_SIZE);
     }
 
+
+
     @Override
     protected double computePrefWidth(double height) {
+        System.out.println("Yoo");
         if(actions.size() == 0) {
             return 0;
         }
@@ -100,4 +103,6 @@ public class GlobalActionButton extends HBox {
     public ObservableList<Action> getActions() {
         return actions;
     }
+
+
 }

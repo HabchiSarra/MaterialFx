@@ -24,10 +24,10 @@ public class SimpleViewAppDemo1 {
     public static void main(String... args) {
 
         Application app = new Application();
-        app.setTitle("MyApp");
-        app.setBaseColor(Color.DARKORCHID);
-        app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_DOWN, () -> app.animateToolbarToLargeVersion()));
-        app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_UP, () -> app.animateToolbarToSmallVersion()));
+        app.setTitle("PAPRIKA iOS");
+        app.setBaseColor(Color.rgb(30,160,118));
+      //  app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_DOWN, () -> app.animateToolbarToLargeVersion()));
+      //  app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_UP, () -> app.animateToolbarToSmallVersion()));
 
         app.setToolbarBackgroundImage(SimpleViewAppDemo1.class.getResource("toolbar-background.png").toExternalForm());
 
@@ -128,7 +128,7 @@ public class SimpleViewAppDemo1 {
         app.setWorkbench(view);
 
         app.clearGlobalActions();
-        app.addGlobalAction(new Action(FontAwesomeIcons.NAV, () -> imageView.toggleOverlayVisibility()));
+        app.addGlobalAction(new Action(FontAwesomeIcons.INFO, () -> imageView.toggleOverlayVisibility()));
     }
 
     private static void showPersonList(Application app) {

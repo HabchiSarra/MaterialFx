@@ -71,10 +71,7 @@ public class Application extends VBox {
                     javaFxStarterLock.lock();
                     try {
                         stage.setValue(s);
-
                         initApplication();
-
-
                         javaFXStarterCondition.signalAll();
                     } finally {
                         javaFxStarterLock.unlock();
@@ -88,6 +85,7 @@ public class Application extends VBox {
             try {
                 javaFXStarterCondition.await();
             } catch (InterruptedException e) {
+
             }
         } finally {
             javaFxStarterLock.unlock();
@@ -143,6 +141,7 @@ public class Application extends VBox {
         double actionButtonPrefWidth = globalActionButton.prefWidth(-1);
         double actionButtonPrefHeight = globalActionButton.prefHeight(-1);
         globalActionButton.resize(actionButtonPrefWidth, actionButtonPrefHeight);
+
         if(toolbar.isLarge()) {
             globalActionButton.relocate(getWidth() - getPadding().getRight() - 48 - actionButtonPrefWidth, toolbar.getHeight() - actionButtonPrefHeight / 2);
         } else {
