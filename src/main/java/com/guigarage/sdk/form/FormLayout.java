@@ -3,6 +3,9 @@ package com.guigarage.sdk.form;
 import com.guigarage.sdk.action.Action;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 
 import java.util.ArrayList;
@@ -36,6 +39,9 @@ public class FormLayout extends Region {
     public void addActions(Action... actions) {
         add(new ActionFormRow(actions));
     }
+    public void addSpecAction(Action action){
+        getChildren().addAll(new Button("Choisir"));
+    }
 
     public void addHeader(String title, String description) {
         add(new HeaderFormRow(title, description));
@@ -50,9 +56,20 @@ public class FormLayout extends Region {
         add(row);
         return row.getFormEditor();
     }
+    public TextField addSpecialField(String name, EditorType type) {
+        EditorFormRow row = new EditorFormRow(name, type);
+        add(row);
+        return (TextField) row.getEditor();
+    }
 
+  /*  public FormEditor addField(String name, EditorType type, String buttonName) {
+        EditorFormRow row = new EditorFormRow(name, type, buttonName);
+        add(row);
+        return row.getFormEditor();
+    }*/
     public void add(FormRow row) {
         getChildren().addAll(row.getNodes());
+
         rows.add(row);
     }
 

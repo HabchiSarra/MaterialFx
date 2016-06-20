@@ -7,17 +7,24 @@ import com.guigarage.sdk.chat.DefaultChatMessage;
 import com.guigarage.sdk.container.WorkbenchView;
 import com.guigarage.sdk.footer.ActionFooter;
 import com.guigarage.sdk.form.EditorType;
+import com.guigarage.sdk.form.FormEditor;
 import com.guigarage.sdk.form.FormLayout;
 import com.guigarage.sdk.image.SimpleImageView;
 import com.guigarage.sdk.list.MediaList;
 import com.guigarage.sdk.overlay.Overlay;
 import com.guigarage.sdk.table.MediaTable;
+import com.guigarage.sdk.util.Callback;
 import com.guigarage.sdk.util.DefaultMedia;
 import com.guigarage.sdk.util.FontAwesomeIcons;
 import com.guigarage.sdk.util.Media;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+
+import java.io.File;
 
 public class SimpleViewAppDemo1 {
 
@@ -30,13 +37,14 @@ public class SimpleViewAppDemo1 {
       //  app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_UP, () -> app.animateToolbarToSmallVersion()));
 
         app.setToolbarBackgroundImage(SimpleViewAppDemo1.class.getResource("toolbar-background.png").toExternalForm());
+        app.addMenuEntry(new Action(FontAwesomeIcons.PLUS, "Ajouter une application", () -> showAddApp(app)));
+        app.addMenuEntry(new Action(FontAwesomeIcons.SEARCH, "Analyser une application", () -> showPersonList(app)));
+        app.addMenuEntry(new Action(FontAwesomeIcons.LISTE, "Analyser le dataset", () -> showPersonTable(app)));
+        app.addMenuEntry(new Action(FontAwesomeIcons.STATS, "Statistiques", () -> showPersonTable(app)));
+        app.addMenuEntry(new Action(FontAwesomeIcons.LIST, "Afficher le dataset", () -> showForm(app)));
+        app.addMenuEntry(new Action(FontAwesomeIcons.TRESHOLDS, "Afficher les seuils", () -> showImage(app)));
 
-        app.addMenuEntry(new Action(FontAwesomeIcons.CALENDAR, "Show List", () -> showPersonList(app)));
-        app.addMenuEntry(new Action(FontAwesomeIcons.CALENDAR, "Show Table", () -> showPersonTable(app)));
-        app.addMenuEntry(new Action(FontAwesomeIcons.COGS, "System Settings", () -> showForm(app)));
-        app.addMenuEntry(new Action(FontAwesomeIcons.MAIL, "Mail", () -> showImage(app)));
-
-        app.addMenuEntry(new Action(FontAwesomeIcons.MAIL, "Toogle App Color", () -> {
+       /* app.addMenuEntry(new Action(FontAwesomeIcons.MAIL, "Toogle App Color", () -> {
             double random = Math.random();
             if(random < 0.1) {
                 app.setBaseColor(Color.ORANGE);
@@ -59,7 +67,9 @@ public class SimpleViewAppDemo1 {
             } else {
                 app.setBaseColor(Color.DARKTURQUOISE);
             }
-        }));
+        }));*/
+
+        /*
         app.addMenuEntry(new Action(FontAwesomeIcons.MAIL, "Toogle Toolbar Size", () -> {
             if (app.isToolbarLarge()) {
                 app.animateToolbarToSmallVersion();
@@ -73,20 +83,54 @@ public class SimpleViewAppDemo1 {
             } else {
                 app.setToolbarBackgroundImage(SimpleViewAppDemo1.class.getResource("toolbar-background.png").toExternalForm());
             }
-        }));
+        }));*/
 
-        app.setMediaAsMenuHeader(new DefaultMedia("User4711", "Ich bin eine Beschreibung.", SimpleViewAppDemo1.class.getResource("user-13.jpg").toExternalForm()));
+        //app.setMediaAsMenuHeader(new DefaultMedia("User4711", "Ich bin eine Beschreibung.", SimpleViewAppDemo1.class.getResource("user-13.jpg").toExternalForm()));
 
-        app.setMenuFooter(new Action(FontAwesomeIcons.COGS, "Configure"));
-
+        app.setMenuFooter(new Action(FontAwesomeIcons.COGS, "Configuration"));
         showImage(app);
 
         app.show();
     }
 
+    private static void showAddApp(Application app){
+        FormLayout formLayout = new FormLayout();
+        formLayout.addHeader("Le chemin de l'application","Introduire le chemin du dossier contenant les fichiers de l'application");
+        TextField textField= formLayout.addSpecialField("Chemin", EditorType.TEXTFIELD);
+
+        Action action = new Action("Choisir");
+        action.setCallback(new Callback() {
+            @Override
+            public void call() {
+                DirectoryChooser directoryChooser = new DirectoryChooser();
+                directoryChooser.setTitle("Open Resource File");
+                File f =directoryChooser.showDialog(app.getStage());
+                textField.setText(f.getAbsolutePath());
+
+            }
+        });
+        formLayout.addActions(action);
+        formLayout.addHeader("Les informations");
+        formLayout.addField("Nom");
+        formLayout.addField("Clé");
+        formLayout.addField("Catégorie", EditorType.COMBOBOX);
+        formLayout.addActions(new Action("Ajouter"), new Action("Annuler"));
+        ScrollPane scrollPane = new ScrollPane();
+        formLayout.translateXProperty().bind(scrollPane.widthProperty().subtract(formLayout.widthProperty()).divide(2));
+
+        scrollPane.setContent(formLayout);
+      // scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        WorkbenchView view = new WorkbenchView();
+        view.setCenterNode(scrollPane);
+
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+    }
+
     private static void showForm(Application app) {
         FormLayout formLayout = new FormLayout();
-
         formLayout.addHeader("Ich bin eine Form");
         formLayout.addField("Name");
         formLayout.addField("Description", EditorType.TEXTAREA);

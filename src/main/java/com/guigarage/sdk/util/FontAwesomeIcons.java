@@ -12,9 +12,14 @@ public enum FontAwesomeIcons implements FontBasedIcon {
     MAIL("\uf003"),
     NAV("\uf0c9"),
     PHONE("\uf095"),
-    SEARCH("\uf002"),
+    TABLE("\uf0ce"),
     VOLUMNE_DOWN("\uf103"),
     VOLUMNE_UP("\uf102"),
+    SEARCH("\uf002"),
+    STATS("\uf080"),
+    LISTE("\uf009"),
+    LIST("\uf0ca"),
+    TRESHOLDS("\uf160"),
     INFO("\uf016");
 
     private String text;

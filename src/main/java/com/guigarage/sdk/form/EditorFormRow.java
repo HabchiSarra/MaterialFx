@@ -3,6 +3,9 @@ package com.guigarage.sdk.form;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -13,7 +16,7 @@ import java.util.List;
 public class EditorFormRow implements FormRow {
 
     private Label label;
-
+    private Node button;
     private Node editor;
 
     private FormEditor formEditor;
@@ -21,7 +24,6 @@ public class EditorFormRow implements FormRow {
     public EditorFormRow(String labelText, EditorType editorType) {
         this.editor = createEditor(editorType);
         this.label = createLabel(labelText, editor);
-
         label.disableProperty().bind(editor.disableProperty());
         label.visibleProperty().bind(editor.visibleProperty());
 
@@ -30,10 +32,24 @@ public class EditorFormRow implements FormRow {
 
         formEditor = new FormEditor(editor.disableProperty(), nameProperty, editor.visibleProperty());
     }
+  /*  public EditorFormRow(String labelText, EditorType editorType, String buttonName) {
+        this.editor = createEditor(editorType);
+        this.button  = new Button(buttonName);
+        this.label = createLabel(labelText, editor);
 
+        /*label.disableProperty().bind(editor.disableProperty());
+        label.visibleProperty().bind(editor.visibleProperty());
+
+        StringProperty nameProperty = new SimpleStringProperty();
+        nameProperty.addListener(e -> label.setText(nameProperty.get() + ":"));
+
+        formEditor = new FormEditor(editor.disableProperty(), nameProperty, editor.visibleProperty());*/
+    /*}*/
     private Node createEditor(EditorType editorType) {
         if(editorType.equals(EditorType.TEXTFIELD)) {
-            return new TextField();
+            TextField textField= new TextField();
+
+            return textField;
         }
         if(editorType.equals(EditorType.TEXTAREA)) {
             return new TextArea();
@@ -42,10 +58,28 @@ public class EditorFormRow implements FormRow {
             return new CheckBox();
         }
         if(editorType.equals(EditorType.COMBOBOX)) {
-            return new ComboBox<>();
+            ObservableList<String> options =
+                    FXCollections.observableArrayList(
+                            "Games",
+                            "Parse",
+                            "Health",
+                            "Communication",
+                            "Social",
+                            "Media",
+                            "Location",
+                            "Finance",
+                            "Tasks",
+                            "Weather",
+                            "News"
+                    );
+            final ComboBox comboBox = new ComboBox(options);
+            return comboBox;
         }
         if(editorType.equals(EditorType.LIST)) {
             return new ListView<>();
+        }if(editorType.equals(EditorType.SPLITMENU)){
+            SplitMenuButton splitMenuButton = new SplitMenuButton();
+            return splitMenuButton;
         }
         return null;
     }
@@ -96,7 +130,8 @@ public class EditorFormRow implements FormRow {
 
     @Override
     public List<Node> getNodes() {
-        return FXCollections.observableArrayList(label, editor);
+            return FXCollections.observableArrayList(label, editor);
+
     }
 
     public Label getLabel() {

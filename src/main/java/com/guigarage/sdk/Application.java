@@ -261,4 +261,7 @@ public class Application extends VBox {
     public Image getToolbarBackgroundImage() {
         return toolbar.getBackgroundImage();
     }
+    public Stage getStage(){
+        return this.stage.get();
+    }
 }

@@ -419,6 +419,9 @@
     -fx-text-fill: -fx-dark-text-color;
 }
 
+
+
+
 .form-header-title {
     -fx-font-size: 18px;
 }
@@ -526,15 +529,24 @@
     -fx-highlight-fill: -fx-lightest-color;
     -fx-font-size: 16px;
     -fx-text-fill: -fx-text-color;
+
 }
 
 .form-layout .text-field:focused, .form-layout .text-area:focused, .form-layout .combo-box-base:focused, .form-layout .choice-box:focused {
     -fx-border-color: -fx-lighter-color;
 }
 
+.form-layout{
+    -fx-pref-width: 550px;
+    -fx-min-width: 550px;
+}
+
 .form-layout .text-field {
     -fx-padding: 0.5em 0.5em 0.3em 0.1em;
+
 }
+
+
 
 .table-view {
     -fx-table-header-border-color: transparent;
