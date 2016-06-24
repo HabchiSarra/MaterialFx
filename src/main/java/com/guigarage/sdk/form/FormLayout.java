@@ -5,6 +5,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Control;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 
@@ -56,10 +57,11 @@ public class FormLayout extends Region {
         add(row);
         return row.getFormEditor();
     }
-    public TextField addSpecialField(String name, EditorType type) {
+    public Node addSpecialField(String name, EditorType type) {
         EditorFormRow row = new EditorFormRow(name, type);
+
         add(row);
-        return (TextField) row.getEditor();
+        return  row.getEditor();
     }
 
   /*  public FormEditor addField(String name, EditorType type, String buttonName) {

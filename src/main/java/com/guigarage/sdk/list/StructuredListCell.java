@@ -2,6 +2,8 @@ package com.guigarage.sdk.list;
 
 import com.guigarage.sdk.css.CssHelper;
 import com.guigarage.sdk.css.DefaultPropertyBasedCssMetaData;
+import com.guigarage.sdk.demos.SimpleViewAppDemo1;
+import com.guigarage.sdk.util.Media;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.CssMetaData;
@@ -31,7 +33,7 @@ public class StructuredListCell<T> extends ListCell<T> {
         centerContent = new SimpleObjectProperty<>();
         rightContent = new SimpleObjectProperty<>();
 
-        addEventHandler(MouseEvent.MOUSE_CLICKED, e -> simpleSelect());
+       addEventHandler(MouseEvent.MOUSE_CLICKED, e -> simpleSelect());
     }
 
     public Node getLeftContent() {
@@ -80,11 +82,14 @@ public class StructuredListCell<T> extends ListCell<T> {
         return new StructuredListCellSkin(this);
     }
 
-    private void simpleSelect() {
-        ListView lv = getListView();
-        int index = getIndex();
-        MultipleSelectionModel sm = lv.getSelectionModel();
-        lv.getSelectionModel().clearAndSelect(index);
+     void simpleSelect() {
+     //   MediaList<Media> lv = (MediaList) getListView();
+      //  ListView lv = getListView();
+    //    int index = getIndex();
+    //    MultipleSelectionModel sm = lv.getSelectionModel();
+      //  lv.getSelectionModel().clearAndSelect(index);
+       // System.out.println(lv.getItems().get(index).titleProperty().getValue());
+
     }
 
     private static class StyleableProperties {

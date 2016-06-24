@@ -20,7 +20,7 @@ public enum FontAwesomeIcons implements FontBasedIcon {
     LISTE("\uf009"),
     LIST("\uf0ca"),
     TRESHOLDS("\uf160"),
-    INFO("\uf016");
+    INFO("\uf129");
 
     private String text;
 

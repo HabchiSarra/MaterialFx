@@ -37,10 +37,10 @@ public class Overlay extends Region {
     public Overlay() {
         getStyleClass().add("overlay");
 
-        titleLabel = new Label("Beschreibung");
+        titleLabel = new Label("À propos");
         titleLabel.getStyleClass().addAll("overlay-content", "overlay-title");
 
-        descriptionLabel = new Label("Ich bin die Beschreibung des aktuell angezeigten Datensatzes. Ich kann schon mal länger sein als so ein langweiliger Titel. Daher muss ich natürlich vernünftig umbrechen.");
+        descriptionLabel = new Label("Paprika iOS est un outil de détection des patrons et anti-patrons dans les applications iOS, il prend en charge des anti-patrons orientés objet et des patrons et anti-patrons spécifiques à iOS.\nCette version supporte seulement les application développées en Objective-C.");
         descriptionLabel.getStyleClass().addAll("overlay-content", "overlay-description");
         descriptionLabel.setWrapText(true);
 
@@ -50,6 +50,7 @@ public class Overlay extends Region {
         getChildren().addAll(titleLabel, descriptionLabel, seperator);
 
         hidden = new SimpleBooleanProperty(false);
+
 
     }
 

@@ -60,10 +60,8 @@ public class Application extends VBox {
         stage = new SimpleObjectProperty<>();
         scene = new SimpleObjectProperty<>();
         stopCallback = new SimpleObjectProperty<>();
-
         javaFxStarterLock = new ReentrantLock();
         javaFXStarterCondition = javaFxStarterLock.newCondition();
-
         javaFxStarterLock.lock();
         try {
             Executors.newSingleThreadExecutor().execute(() -> {
@@ -112,6 +110,7 @@ public class Application extends VBox {
                 menuSlider.showPopover();
             }
         });
+       // setToolbarLarge(true);
         VBox.setVgrow(toolbar, Priority.NEVER);
 
         VBox menuBox = new VBox();
@@ -238,6 +237,13 @@ public class Application extends VBox {
             myScene.getStylesheets().add(ApplicationStarter.class.getResource("default-style.css").toExternalForm());
             stage.get().setScene(scene.get());
             stage.get().show();
+            stage.get().setWidth(950);
+            stage.get().setHeight(660);
+            stage.get().setResizable(true);
+            stage.get().setX(250);
+            stage.get().setY(8);
+            toolbar.setPrefHeight(80);
+
         };
         if (!Platform.isFxApplicationThread()) {
             Platform.runLater(r);

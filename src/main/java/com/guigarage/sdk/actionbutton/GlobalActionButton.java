@@ -37,8 +37,8 @@ public class GlobalActionButton extends HBox {
                         Button button = new Button();
                         button.setText(added.getIcon().getText());
                         button.setOnMouseEntered(e -> {
-                            button.setScaleX(1.1);
-                            button.setScaleY(1.1);
+                            button.setScaleX(1.05);
+                            button.setScaleY(1.05);
                         });
                         button.setOnMouseExited(e -> {
                             button.setScaleX(1.0);
@@ -77,7 +77,6 @@ public class GlobalActionButton extends HBox {
 
     @Override
     protected double computePrefWidth(double height) {
-        System.out.println("Yoo");
         if(actions.size() == 0) {
             return 0;
         }

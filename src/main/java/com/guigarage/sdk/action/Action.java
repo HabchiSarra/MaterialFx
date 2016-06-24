@@ -52,7 +52,12 @@ public class Action {
         this.tooltip = new SimpleStringProperty(text);
         this.callback = new SimpleObjectProperty<>(callback);
     }
-
+    public Action(String text, Callback callback) {
+        this.icon = new SimpleObjectProperty<>();
+        this.title = new SimpleStringProperty(text);
+        this.tooltip = new SimpleStringProperty(text);
+        this.callback = new SimpleObjectProperty<>(callback);
+    }
     public Action(FontBasedIcon icon, Callback callback) {
         this.icon = new SimpleObjectProperty<>(icon);
         this.title = new SimpleStringProperty();

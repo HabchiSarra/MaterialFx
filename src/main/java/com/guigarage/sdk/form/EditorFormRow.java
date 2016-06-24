@@ -73,6 +73,7 @@ public class EditorFormRow implements FormRow {
                             "News"
                     );
             final ComboBox comboBox = new ComboBox(options);
+            comboBox.setValue("Finance");
             return comboBox;
         }
         if(editorType.equals(EditorType.LIST)) {
