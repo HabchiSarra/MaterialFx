@@ -5,8 +5,9 @@ package com.guigarage.sdk.BDD;
  */
 public class DatasetSimpleLine extends SimpleLine {
     String applicationName;
-    public DatasetSimpleLine(String instanceName, String className) {
+    public DatasetSimpleLine(String instanceName, String className, String applicationName) {
         super(instanceName, className);
+        this.applicationName = applicationName;
     }
 
     public String getApplicationName() {

@@ -434,7 +434,7 @@ public class BDDFacade {
         return lines;
     }
 
-    public ArrayList<DatasetSimpleLine> detectAntipatternDataset(String antipattern, String appKey){
+    public ArrayList<DatasetSimpleLine> detectAntipatternDataset(String antipattern, boolean csv){
 
         ArrayList<DatasetSimpleLine> lines =new ArrayList<>();
         try {
@@ -442,40 +442,39 @@ public class BDDFacade {
             switch (antipattern){
                 case "BLOB":{
                     BLOBQuery blobQuery= BLOBQuery.createBLOBQuery(queryEngine);
-                    System.out.println("aapppp  "+appKey);
-                    lines=blobQuery.executeApp(appKey, true);
+                    lines=blobQuery.executeDatatset( csv, true);
                     return lines;
 
 
                 }
                 case "Long Method": {
                     LMQuery lmQuery=LMQuery.createLMQuery(queryEngine);
-                    lines=lmQuery.executeApp(appKey,true);
+                   lines=lmQuery.executeDataset(csv,true);
                     break;
                 }
                 case "Complex Class": {
                     CCQuery ccQuery=CCQuery.createCCQuery(queryEngine);
-                    lines=ccQuery.executeApp(appKey,true);
+                    lines=ccQuery.executeDataset(csv,true);
                     break;
                 }
                 case "Blocking the Main-Thread":{
                     CSCQuery cscQuery=CSCQuery.createCSCQuery(queryEngine);
-                    lines=cscQuery.executeApp(appKey,true);
+                   lines=cscQuery.executeDataset(csv,true);
                     break;
                 }
                 case "Massive View Controller":{
                     MVCQuery mvcQuery=MVCQuery.createMVCQuery(queryEngine);
-                    lines=mvcQuery.executeApp(appKey,true);
+                    lines=mvcQuery.executeDataset(csv,true);
                     break;
                 }
                 case "Ignoring Low-Memory Warnings" :{
                     ILMWQuery ilmwQuery=ILMWQuery.createILMWQuery(queryEngine);
-                    lines=ilmwQuery.executeApp(appKey,true);
+                   lines=ilmwQuery.executeDataset(csv,true);
                     break;
                 }
                 case "Swiss Army Knife":{
                     SAKQuery sakQuery=SAKQuery.createSAKQuery(queryEngine);
-                    lines=sakQuery.executeApp(appKey,true);
+                    lines=sakQuery.executeDataset(csv,true);
                     break;
                 }
                 case "VIPER":{
@@ -491,5 +490,48 @@ public class BDDFacade {
         }
         return lines;
     }
+
+    public ArrayList<DatasetFuzzyLine> detectAntipatternFuzzyDataset(String antipattern,boolean csv){
+
+        ArrayList<DatasetFuzzyLine> lines =new ArrayList<>();
+        try {
+
+            switch (antipattern){
+                case "BLOB":{
+                    BLOBQuery blobQuery= BLOBQuery.createBLOBQuery(queryEngine);
+                    lines=blobQuery.executeFuzzyDataset( csv, true );
+                    return lines;
+                }
+                case "Long Method": {
+                    LMQuery lmQuery=LMQuery.createLMQuery(queryEngine);
+                    System.out.println("LM");
+                    lines=lmQuery.executeFuzzyDataset( csv, true );
+                    break;
+                }
+                case "Complex Class": {
+                    CCQuery ccQuery=CCQuery.createCCQuery(queryEngine);
+                    lines=ccQuery.executeFuzzyDataset(csv, true );
+                    break;
+                }
+                case "Massive View Controller":{
+                    MVCQuery mvcQuery=MVCQuery.createMVCQuery(queryEngine);
+                    lines=mvcQuery.executeFuzzyDataset( csv, true );
+                    break;
+                }
+                case "Swiss Army Knife":{
+                    SAKQuery sakQuery=SAKQuery.createSAKQuery(queryEngine);
+                    lines=sakQuery.executeFuzzyDataset( csv, true );
+                    break;
+                }
+                default: break;
+            }
+
+
+        }catch (Exception exception){
+
+        }
+        return lines;
+    }
+
 
 }

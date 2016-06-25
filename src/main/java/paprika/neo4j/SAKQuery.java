@@ -1,10 +1,14 @@
 package paprika.neo4j;
 
+import com.guigarage.sdk.BDD.DatasetFuzzyLine;
+import com.guigarage.sdk.BDD.DatasetSimpleLine;
 import com.guigarage.sdk.BDD.FuzzyLine;
 import com.guigarage.sdk.BDD.SimpleLine;
 import net.sourceforge.jFuzzyLogic.FIS;
 import net.sourceforge.jFuzzyLogic.FunctionBlock;
+import org.jfree.data.general.Dataset;
 import org.neo4j.cypher.CypherException;
+import org.neo4j.cypher.internal.compiler.v2_2.functions.Str;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
@@ -24,7 +28,7 @@ public class SAKQuery extends FuzzyQuery{
 
     private SAKQuery(QueryEngine queryEngine) {
         super(queryEngine);
-        fclFile = "/SwissArmyKnife.fcl";
+        fclFile = "fcl/SwissArmyKnife.fcl";
     }
 
     public static SAKQuery createSAKQuery(QueryEngine queryEngine) {
@@ -44,7 +48,39 @@ public class SAKQuery extends FuzzyQuery{
             queryEngine.resultToCSV(result,"_SAK_NO_FUZZY.csv");
         }
     }
+    public ArrayList<DatasetSimpleLine> executeDataset(boolean csv, boolean details) throws CypherException, IOException {
+        Result result;
 
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (cl:Class) WHERE HAS(cl.is_interface) AND cl.number_of_methods > " + veryHigh + " RETURN cl.app_key as app_key";
+            if(details){
+                query += ",cl.name as full_name";
+            }else{
+                query += ",count(cl) as SAK";
+            }
+            result = graphDatabaseService.execute(query);
+
+            ArrayList<HashMap<String, Object>> list =new ArrayList<>();
+            List<String> columns = result.columns();
+            ArrayList<DatasetSimpleLine> lines = new ArrayList<>();
+            DatasetSimpleLine simpleLine;
+            if(result !=null){
+                while(result.hasNext()) {
+                    HashMap res = new HashMap(result.next());
+                    list.add(res);
+                    simpleLine = new DatasetSimpleLine(res.get("full_name").toString(),"",res.get("app_key").toString());
+                    lines.add(simpleLine);
+                    System.out.println("Here");
+                }
+            }
+            if(csv)
+            {
+                queryEngine.resultToCSV(columns,list,"_SAK_NO_FUZZY.csv");
+
+            }
+            return lines;
+        }
+    }
     public void executeFuzzy(boolean details) throws CypherException, IOException {
             Result result;
             try (Transaction ignored = graphDatabaseService.beginTx()) {
@@ -95,14 +131,9 @@ public class SAKQuery extends FuzzyQuery{
             SimpleLine simpleLine;
             if(result !=null){
                 while(result.hasNext()) {
-                    System.out.println("QQ");
-                    HashMap res = new HashMap(result.next());
+                     HashMap res = new HashMap(result.next());
                     simpleLine = new SimpleLine(res.get("full_name").toString(),"");
-                    System.out.println("size: "+ res.size());
                     lines.add(simpleLine);
-                    //   lines.add(new SimpleLine("cla","bla","ala"));
-                    // lines.add(new SimpleLine("cla","bla","ala"));
-                    //  System.out.println("size: "+ res.size());
                 }
             }
 
@@ -150,5 +181,66 @@ public class SAKQuery extends FuzzyQuery{
           //  queryEngine.resultToCSV(fuzzyResult,columns,"_SAK.csv");
         }
         return fuzzyLines;
+    }
+
+    public ArrayList<DatasetFuzzyLine> executeFuzzyDataset(boolean csv, boolean details) throws CypherException, IOException {
+        Result result;
+        ArrayList<DatasetFuzzyLine> lines=new ArrayList<>();
+
+        System.out.println("begining method");
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (cl:Class) WHERE HAS(cl.is_interface) AND cl.number_of_methods > " + high + " RETURN cl.app_key as app_key,cl.number_of_methods as number_of_methods";
+            if(details){
+                query += ",cl.name as full_name";
+            }
+            result = graphDatabaseService.execute(query);
+            System.out.println("afterres method");
+            List<String> columns = new ArrayList<>(result.columns());
+            columns.add("fuzzy_value");
+            int cc;
+            List<Map> fuzzyResult = new ArrayList<>();
+            File fcf = new File(fclFile);
+            DatasetFuzzyLine datasetFuzzyLine;
+            //We look if the file is in a directory otherwise we look inside the jar
+            FIS fis;
+            System.out.println("before fis");
+            if(fcf.exists() && !fcf.isDirectory()){
+                System.out.println("YES");
+                fis = FIS.load(fclFile, false);
+            }else{
+                System.out.println("NO");
+                fis = FIS.load(getClass().getResourceAsStream(fclFile),false);
+            }
+            System.out.println("after fis");
+            FunctionBlock fb = fis.getFunctionBlock(null);
+
+            while(result.hasNext()){
+                HashMap res = new HashMap(result.next());
+                System.out.println("before cc");
+                cc = Integer.parseInt( res.get("number_of_methods").toString());
+                System.out.println("after cc");
+                datasetFuzzyLine=new DatasetFuzzyLine(res.get("full_name").toString(),"",res.get("app_key").toString());
+                System.out.println("after dataset");
+
+                if(cc >= veryHigh){
+                    res.put("fuzzy_value", 1);
+                    datasetFuzzyLine.setProbability(1);
+
+                }else {
+                    fb.setVariable("number_of_methods",cc);
+                    fb.evaluate();
+                    res.put("fuzzy_value", fb.getVariable("res").getValue());
+                    datasetFuzzyLine.setProbability(fb.getVariable("res").getValue());
+
+                }
+                fuzzyResult.add(res);
+                lines.add(datasetFuzzyLine);
+
+            }
+            if(csv){
+                queryEngine.resultToCSV(fuzzyResult,columns,"_SAK.csv");
+            }
+        }
+        return lines;
     }
 }

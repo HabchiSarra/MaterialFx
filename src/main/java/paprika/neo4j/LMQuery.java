@@ -1,5 +1,7 @@
 package paprika.neo4j;
 
+import com.guigarage.sdk.BDD.DatasetFuzzyLine;
+import com.guigarage.sdk.BDD.DatasetSimpleLine;
 import com.guigarage.sdk.BDD.FuzzyLine;
 import com.guigarage.sdk.BDD.SimpleLine;
 import net.sourceforge.jFuzzyLogic.FIS;
@@ -42,6 +44,43 @@ public class LMQuery extends FuzzyQuery{
             }
             result = graphDatabaseService.execute(query);
             queryEngine.resultToCSV(result,"_LM_NO_FUZZY.csv");
+        }
+    }
+
+    public ArrayList<DatasetSimpleLine> executeDataset(boolean csv, boolean details) throws CypherException, IOException {
+        Result result;
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (m:Method) WHERE m.number_of_lines >" + veryHigh + " RETURN m.app_key as app_key, m.name as name";
+            if(details){
+                query += ",m.full_name as full_name";
+            }else{
+                query += ",count(m) as LM";
+            }
+            result = graphDatabaseService.execute(query);
+
+            ArrayList<HashMap<String, Object>> list =new ArrayList<>();
+            List<String> columns = result.columns();
+
+
+            String classname;
+            String[] tabString;
+            ArrayList<DatasetSimpleLine> lines = new ArrayList<>();
+            if(result !=null){
+                while(result.hasNext()) {
+                    System.out.println("sara is working i love you sara <3 ");
+                    HashMap res = new HashMap(result.next());
+                    list.add(res);
+                    tabString = res.get("full_name").toString().split("#");
+                    classname=tabString[1];
+                    lines.add(new DatasetSimpleLine(res.get("name").toString(),classname, res.get("app_key").toString()));
+                }
+            }
+            if(csv){
+                queryEngine.resultToCSV(columns,list,"_LM_NO_FUZZY.csv");
+            }
+            System.out.println("n7abek ");
+            return lines;
+
         }
     }
 
@@ -152,5 +191,57 @@ public class LMQuery extends FuzzyQuery{
 
         }
         return fuzzyLines;
+    }
+    public ArrayList<DatasetFuzzyLine> executeFuzzyDataset(boolean csv, boolean details) throws CypherException, IOException {
+        Result result;
+        ArrayList<DatasetFuzzyLine> lines=new ArrayList<>();
+
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query =  "MATCH (m:Method) WHERE m.number_of_lines >" + high + " RETURN m.app_key as app_key, m.number_of_lines as number_of_lines, m.name as name";
+            if(details){
+                query += ",m.full_name as full_name";
+            }
+            result = graphDatabaseService.execute(query);
+            List<String> columns = new ArrayList<>(result.columns());
+            columns.add("fuzzy_value");
+            int cc;
+            List<Map> fuzzyResult = new ArrayList<>();
+            File fcf = new File(fclFile);
+            DatasetFuzzyLine datasetFuzzyLine;
+            //We look if the file is in a directory otherwise we look inside the jar
+            FIS fis;
+            if(fcf.exists() && !fcf.isDirectory()){
+                fis = FIS.load(fclFile, false);
+            }else{
+                fis = FIS.load(getClass().getResourceAsStream(fclFile),false);
+            }
+            String[] tabString;
+            String classname;
+            FunctionBlock fb = fis.getFunctionBlock(null);
+            while(result.hasNext()){
+                HashMap res = new HashMap(result.next());
+                cc = (int) res.get("number_of_lines");
+                tabString = res.get("full_name").toString().split("#");
+                classname=tabString[1];
+                datasetFuzzyLine=new DatasetFuzzyLine(res.get("name").toString(),classname,res.get("app_key").toString());
+                if(cc >= veryHigh){
+                    res.put("fuzzy_value", 1);
+                    datasetFuzzyLine.setProbability(1);
+                }else {
+                    fb.setVariable("number_of_lines",cc);
+                    fb.evaluate();
+                    res.put("fuzzy_value", fb.getVariable("res").getValue());
+                    datasetFuzzyLine.setProbability(fb.getVariable("res").getValue());
+                }
+                fuzzyResult.add(res);
+                lines.add(datasetFuzzyLine);
+            }
+            if(csv){
+                queryEngine.resultToCSV(fuzzyResult,columns,"_LM.csv");
+            }
+
+
+        }
+        return lines;
     }
 }

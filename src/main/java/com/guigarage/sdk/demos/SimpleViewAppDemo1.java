@@ -1,10 +1,7 @@
 package com.guigarage.sdk.demos;
 
 import com.guigarage.sdk.Application;
-import com.guigarage.sdk.BDD.BDDFacade;
-import com.guigarage.sdk.BDD.FuzzyLine;
-import com.guigarage.sdk.BDD.SimpleLine;
-import com.guigarage.sdk.BDD.TableLine;
+import com.guigarage.sdk.BDD.*;
 import com.guigarage.sdk.action.Action;
 import com.guigarage.sdk.chat.ChatTimeline;
 import com.guigarage.sdk.chat.DefaultChatMessage;
@@ -381,7 +378,7 @@ public class SimpleViewAppDemo1 {
             {
                 if(lines.get(0).getClassName().equals("")){
 
-                        showOneColumnsTable(lines,antipattern,appKey);
+                        showOneColumnTable(lines,antipattern,appKey);
 
                 }else {
                     showTwoColumnsTable(lines,antipattern,appKey);
@@ -392,7 +389,7 @@ public class SimpleViewAppDemo1 {
 
 
             }else{
-                showOneColumnsTable(lines,antipattern,appKey);
+                showOneColumnTable(lines,antipattern,appKey);
             }
         }
         else{
@@ -432,15 +429,15 @@ public class SimpleViewAppDemo1 {
         TableView<SimpleLine> table = new TableView<SimpleLine>();
         table.setEditable(false);
         TableColumn methodCol = new TableColumn("Méthode");
-        methodCol.setMinWidth(400);
+        methodCol.setPrefWidth(430);
         TableColumn classCol = new TableColumn("Classe");
-        classCol.setMinWidth(400);
+        classCol.setPrefWidth(340);
         table.getStyleClass().add("my-table");
         table.setMinWidth(800);
-        table.setMaxWidth(800);
-        table.setPrefWidth(800);
+        table.setMaxWidth(1000);
+        table.setPrefWidth(820);
         ScrollPane scrollPane=new ScrollPane();
-        scrollPane.setPadding(new Insets(50,0,0,0));
+        scrollPane.setPadding(new Insets(20,0,0,0));
 
         ObservableList<SimpleLine> observableList = FXCollections.observableList(lines);
         methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
@@ -477,14 +474,14 @@ public class SimpleViewAppDemo1 {
         TableView<FuzzyLine> table = new TableView<>();
         table.setEditable(false);
         TableColumn methodCol = new TableColumn("Classe");
-        methodCol.setMinWidth(400);
+        methodCol.setPrefWidth(300);
         TableColumn classCol = new TableColumn("Probabilité %");
         classCol.setSortType(TableColumn.SortType.DESCENDING);
-        classCol.setMinWidth(200);
+        classCol.setPrefWidth(200);
         table.getStyleClass().add("my-table");
-        table.setMinWidth(600);
-        table.setMaxWidth(600);
-        table.setPrefWidth(600);
+
+        table.setMaxWidth(500);
+        table.setPrefWidth(500);
         ScrollPane scrollPane=new ScrollPane();
         scrollPane.setPadding(new Insets(50,0,0,0));
 
@@ -523,12 +520,12 @@ public class SimpleViewAppDemo1 {
 
 
 
-    private static void showOneColumnsTable(ArrayList<SimpleLine> lines, String antipattern, String appKey){
+    private static void showOneColumnTable(ArrayList<SimpleLine> lines, String antipattern, String appKey){
             if(lines.size()!=0){
             TableView<SimpleLine> table = new TableView<SimpleLine>();
             table.setEditable(false);
             TableColumn methodCol = new TableColumn("Classe");
-            methodCol.setMinWidth(400);
+            methodCol.setPrefWidth(380);
             //  TableColumn classCol = new TableColumn("Classe");
             // classCol.setMinWidth(80);
          //   TableColumn applicationCol = new TableColumn("Application");
@@ -581,8 +578,6 @@ public class SimpleViewAppDemo1 {
                 vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
                 app.setWorkbench(view);
                 app.clearGlobalActions();
-
-
             }
 
 
@@ -637,33 +632,6 @@ public class SimpleViewAppDemo1 {
 
 
     }
-/*
-    private static void showForm(Application app) {
-        FormLayout formLayout = new FormLayout();
-        formLayout.addHeader("Ich bin eine Form");
-        formLayout.addField("Name");
-        formLayout.addField("Description", EditorType.TEXTAREA);
-        formLayout.addSeperator();
-        formLayout.addField("Gender", EditorType.COMBOBOX);
-        formLayout.addField("Age");
-        formLayout.addHeader("Adresse", "Bitte die Mail-Adresse angeben.");
-        formLayout.addField("Mail");
-        formLayout.addField("Mail2");
-        formLayout.addField("Phone");
-        formLayout.addField("Skype");
-        formLayout.addActions(new Action("Save"), new Action("Cancel"));
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setContent(formLayout);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        WorkbenchView view = new WorkbenchView();
-        view.setCenterNode(scrollPane);
-
-
-        app.setWorkbench(view);
-        app.clearGlobalActions();
-    */
 
     public static void showTresholds(Application app){
         TableView<TableLine> table = new TableView<TableLine>();
@@ -1095,8 +1063,10 @@ public class SimpleViewAppDemo1 {
             public void handle(MouseEvent event) {
 
                 String antipatttern = group.getSelectedToggle().getUserData().toString();
-                Boolean fuzzy = checkBox.isSelected();
-             //   showAnalysisResultsDataset(appKey,antipatttern,fuzzy);
+                boolean fuzzy = checkBox.isSelected();
+                boolean csv = checkBox2.isSelected();
+                showAnalysisResultsDataset(antipatttern,csv,fuzzy);
+
             }
         });
 
@@ -1116,41 +1086,21 @@ public class SimpleViewAppDemo1 {
     }
 
 
-    private static void showAnalysisResultsDataset(String antipattern, boolean fuzzy){
+    private static void showAnalysisResultsDataset(String antipattern,boolean csv, boolean fuzzy){
         //Send Queries
         if(!fuzzy) {
-            ArrayList<SimpleLine> lines;
-            lines=bddFacade.detectAntipatternDataset(antipattern);
+            ArrayList<DatasetSimpleLine> lines;
+            lines=bddFacade.detectAntipatternDataset(antipattern, csv);
 
             if(lines.size()!=0)
             {
                 if(lines.get(0).getClassName().equals("")){
 
-                    showOneColumnsTable(lines,antipattern);
+                    showTwoColumnsDataset(lines,antipattern);
 
                 }else {
-                    showTwoColumnsTable(lines,antipattern);
-
-                }
-
-
-
-
-            }else{
-                showOneColumnsTable(lines,antipattern);
-            }
-        }
-        else{
-            ArrayList<FuzzyLine> lines;
-            lines = bddFacade.detectAntipatternFuzzy(antipattern);
-            if(lines.size()!=0)
-            {
-                if(lines.get(0).getClassName().equals("")){
-
-                    showFuzzyOneColumnTable(lines,antipattern);
-
-                }else {
-                    showFuzzyTwoColumnsTable(lines,antipattern);
+                    System.out.println("mido raged");
+                   showThreeColumnsDataset(lines,antipattern);
 
                 }
 
@@ -1171,5 +1121,225 @@ public class SimpleViewAppDemo1 {
                 app.clearGlobalActions();
             }
         }
+       else{
+            ArrayList<DatasetFuzzyLine> lines;
+            lines = bddFacade.detectAntipatternFuzzyDataset(antipattern,csv);
+            if(lines.size()!=0)
+            {
+                if(lines.get(0).getClassName().equals("")){
+
+                    showFuzzyOneColumnTableDataset(lines,antipattern);
+
+                }else {
+                    showFuzzyTwoColumnsTableDataset(lines,antipattern);
+
+                }
+
+
+
+
+            }else{
+                Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+"  détectée.").styleClass("labelStyleClass").build();
+                label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+                WorkbenchView view = new WorkbenchView();
+                VBox vBox=new VBox();
+                vBox.getChildren().add(label);
+                vBox.setAlignment(Pos.CENTER);
+                //   label.setPadding(new Insets(0,0,0,250));
+                view.setCenterNode(vBox);
+                vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+                app.setWorkbench(view);
+                app.clearGlobalActions();
+            }
+        }
+    }
+
+    public static void showTwoColumnsDataset( ArrayList<DatasetSimpleLine> lines, String antipattern) {
+        TableView<DatasetSimpleLine> table = new TableView<DatasetSimpleLine>();
+        table.setEditable(false);
+        TableColumn methodCol = new TableColumn("Classe");
+        methodCol.setPrefWidth(300);
+        TableColumn classCol = new TableColumn("Application");
+        classCol.setPrefWidth(300);
+        table.getStyleClass().add("my-table");
+        table.setMinWidth(600);
+        table.setMaxWidth(600);
+        table.setPrefWidth(600);
+        ScrollPane scrollPane=new ScrollPane();
+        scrollPane.setPadding(new Insets(20,0,0,0));
+        ObservableList<DatasetSimpleLine> observableList = FXCollections.observableList(lines);
+        methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
+        classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("applicationName"));
+        // applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
+
+        table.setItems(observableList);
+
+        table.getColumns().addAll(methodCol, classCol);
+        //System.out.println("pss"+table.getItems());
+        VBox vBox=new VBox();
+        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées ").styleClass("labelStyleClass").build();
+        label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+        label.setPadding(new Insets(0,0,13,0));
+        //  table.setPadding(new Insets(50,20,20,20));
+        vBox.getChildren().addAll(label,table);
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setMinWidth(800);
+        vBox.setMaxWidth(900);
+        vBox.setPrefWidth(800);
+
+        scrollPane.setContent(vBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        WorkbenchView view = new WorkbenchView();
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+
+
+    }
+
+    public static void showThreeColumnsDataset( ArrayList<DatasetSimpleLine> lines, String antipattern) {
+        TableView<DatasetSimpleLine> table = new TableView<DatasetSimpleLine>();
+        table.setEditable(false);
+        TableColumn methodCol = new TableColumn("Classe");
+        methodCol.setMinWidth(350);
+        TableColumn classCol = new TableColumn("Application");
+        classCol.setMinWidth(200);
+        TableColumn applicationCol= new TableColumn("Méthode");
+        applicationCol.setMinWidth(350);
+        table.getStyleClass().add("my-table");
+        table.setMinWidth(800);
+        table.setMaxWidth(1000);
+        table.setPrefWidth(800);
+        ScrollPane scrollPane=new ScrollPane();
+        scrollPane.setPadding(new Insets(20,0,0,0));
+        ObservableList<DatasetSimpleLine> observableList = FXCollections.observableList(lines);
+        methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
+        classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("applicationName"));
+         applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
+
+        table.setItems(observableList);
+
+        table.getColumns().addAll(applicationCol, methodCol, classCol);
+        //System.out.println("pss"+table.getItems());
+        VBox vBox=new VBox();
+        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées ").styleClass("labelStyleClass").build();
+        label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+        label.setPadding(new Insets(0,0,13,0));
+        //  table.setPadding(new Insets(50,20,20,20));
+        vBox.getChildren().addAll(label,table);
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setMinWidth(800);
+        vBox.setMaxWidth(1000);
+        vBox.setPrefWidth(900);
+
+        scrollPane.setContent(vBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        WorkbenchView view = new WorkbenchView();
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+    }
+    private static void showFuzzyOneColumnTableDataset(ArrayList<DatasetFuzzyLine> lines, String antipattern){
+        TableView<DatasetFuzzyLine> table = new TableView<>();
+        table.setEditable(false);
+        TableColumn methodCol = new TableColumn("Classe");
+        methodCol.setPrefWidth(350);
+        TableColumn classCol = new TableColumn("Probabilité %");
+        classCol.setSortType(TableColumn.SortType.DESCENDING);
+        classCol.setPrefWidth(200);
+        TableColumn appCol = new TableColumn("Application");
+        appCol.setPrefWidth(200);
+        table.getStyleClass().add("my-table");
+        table.setMinWidth(600);
+        table.setMaxWidth(1000);
+        table.setPrefWidth(750);
+        ScrollPane scrollPane=new ScrollPane();
+        scrollPane.setPadding(new Insets(50,0,0,0));
+
+        ObservableList<DatasetFuzzyLine> observableList = FXCollections.observableList(lines);
+        methodCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, String>("instanceName"));
+        classCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, String>("probability"));
+        appCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, Double>("applicationName"));
+
+        table.setItems(observableList);
+
+        table.getColumns().addAll(methodCol, appCol,classCol);
+        table.getSortOrder().add(classCol);
+        //System.out.println("pss"+table.getItems());
+        VBox vBox=new VBox();
+        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées").styleClass("labelStyleClass").build();
+        label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+        label.setPadding(new Insets(0,0,25,0));
+        //  table.setPadding(new Insets(50,20,20,20));
+        vBox.getChildren().addAll(label,table);
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setMinWidth(800);
+        vBox.setMaxWidth(900);
+        vBox.setPrefWidth(800);
+
+        scrollPane.setContent(vBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        WorkbenchView view = new WorkbenchView();
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+    }
+
+    private static void showFuzzyTwoColumnsTableDataset(ArrayList<DatasetFuzzyLine> lines, String antipattern){
+        TableView<DatasetFuzzyLine> table = new TableView<>();
+        table.setEditable(false);
+        TableColumn methodCol = new TableColumn("Méthode");
+        methodCol.setPrefWidth(300);
+        TableColumn secCol = new TableColumn("Classe");
+        secCol.setPrefWidth(300);
+        TableColumn classCol = new TableColumn("Probabilité %");
+        classCol.setPrefWidth(130);
+        TableColumn appCol = new TableColumn("Application");
+        appCol.setPrefWidth(150);
+        classCol.setSortType(TableColumn.SortType.DESCENDING);
+        table.getStyleClass().add("my-table");
+        table.setMinWidth(900);
+        table.setMaxWidth(1100);
+        table.setPrefWidth(1100);
+        ScrollPane scrollPane=new ScrollPane();
+        scrollPane.setPadding(new Insets(50,0,0,0));
+
+        ObservableList<DatasetFuzzyLine> observableList = FXCollections.observableList(lines);
+        methodCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, String>("instanceName"));
+        classCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, String>("probability"));
+        secCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, Double>("className"));
+        appCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, Double>("applicationName"));
+        table.setItems(observableList);
+
+        table.getColumns().addAll(methodCol,secCol,appCol,classCol);
+        table.getSortOrder().add(classCol);
+        //System.out.println("pss"+table.getItems());
+        VBox vBox=new VBox();
+        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées").styleClass("labelStyleClass").build();
+        label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+        label.setPadding(new Insets(0,0,25,0));
+        //  table.setPadding(new Insets(50,20,20,20));
+        vBox.getChildren().addAll(label,table);
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setMinWidth(800);
+        vBox.setMaxWidth(900);
+        vBox.setPrefWidth(800);
+
+        scrollPane.setContent(vBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        WorkbenchView view = new WorkbenchView();
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+
+
     }
 }

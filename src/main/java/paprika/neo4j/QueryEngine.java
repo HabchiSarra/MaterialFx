@@ -8,10 +8,7 @@ import org.neo4j.graphdb.Transaction;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by Geoffrey Hecht on 12/01/15.
@@ -97,6 +94,40 @@ public class QueryEngine {
         writer.newLine();
         while ( result.hasNext()){
             Map<String,Object> row = result.next();
+            for(i=0;i<columns_size;i++){
+                val = row.get(columns.get(i));
+                if(val != null){
+                    writer.write(val.toString());
+                    writer.write(',');
+                }
+            }
+            val = row.get(columns.get(i));
+            if(val != null){
+                writer.write(val.toString());
+            }
+            writer.newLine();
+        }
+        writer.close();
+        fw.close();
+    }
+
+
+    public void resultToCSV(List<String> columns, ArrayList<HashMap<String, Object>>  list, String csvSuffix) throws IOException {
+        String name = csvPrefix+csvSuffix;
+        FileWriter fw = new FileWriter(name);
+        BufferedWriter writer = new BufferedWriter( fw );
+       // List<String> columns = result.columns();
+        Object val;
+        int i;
+        int columns_size = columns.size()-1;
+        for(i=0;i<columns_size;i++){
+            writer.write(columns.get(i));
+            writer.write(',');
+        }
+        writer.write(columns.get(i));
+        writer.newLine();
+        for ( HashMap<String, Object> row : list){
+           // Map<String,Object> row = result.next();
             for(i=0;i<columns_size;i++){
                 val = row.get(columns.get(i));
                 if(val != null){
