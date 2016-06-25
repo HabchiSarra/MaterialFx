@@ -10,6 +10,11 @@
     -fx-light-gray-color: rgb(200.0, 200.0, 200.0);
     -fx-lightest-gray-color: rgb(230.0, 230.0, 230.0);
 }
+#myLabel .speciallabel {
+    -fx-font-size: 14px;
+
+    -fx-text-color: red;
+}
 
 .text {
     -fx-font-family: 'Museo Slab 500';
@@ -451,6 +456,7 @@
 
 
 
+
 .form-header-title {
     -fx-font-size: 18px;
 }
@@ -646,5 +652,11 @@
     -fx-text-align: center;
     -fx-border-color: black;
     -fx-text-color: black !important;
+
+}
+
+#specialLabel {
+    -fx-font-size: 14px;
+    -fx-text-color: red;
 
 }

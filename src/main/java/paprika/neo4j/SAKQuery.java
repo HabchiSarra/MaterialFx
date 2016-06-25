@@ -1,5 +1,7 @@
 package paprika.neo4j;
 
+import com.guigarage.sdk.BDD.FuzzyLine;
+import com.guigarage.sdk.BDD.SimpleLine;
 import net.sourceforge.jFuzzyLogic.FIS;
 import net.sourceforge.jFuzzyLogic.FunctionBlock;
 import org.neo4j.cypher.CypherException;
@@ -18,7 +20,7 @@ import java.util.Map;
  */
 public class SAKQuery extends FuzzyQuery{
     protected static double high = 2;
-    protected static double veryHigh = 9;
+    protected static double veryHigh = 2;
 
     private SAKQuery(QueryEngine queryEngine) {
         super(queryEngine);
@@ -66,7 +68,7 @@ public class SAKQuery extends FuzzyQuery{
                 FunctionBlock fb = fis.getFunctionBlock(null);
                 while(result.hasNext()){
                     HashMap res = new HashMap(result.next());
-                    cc = (int) res.get("number_of_methods");
+                    cc = Integer.parseInt( res.get("number_of_methods").toString());
                     if(cc >= veryHigh){
                         res.put("fuzzy_value", 1);
                     }else {
@@ -78,5 +80,75 @@ public class SAKQuery extends FuzzyQuery{
                     }
                     queryEngine.resultToCSV(fuzzyResult,columns,"_SAK.csv");
             }
+    }
+    public ArrayList<SimpleLine> executeApp(String appKey, boolean details) throws CypherException, IOException {
+        Result result;
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (cl:Class) WHERE cl.app_key='"+appKey+"' AND HAS(cl.is_interface) AND cl.number_of_methods > " + veryHigh + " RETURN cl.app_key as app_key";
+            if(details){
+                query += ",cl.name as full_name";
+            }else{
+                query += ",count(cl) as SAK";
+            }
+            result = graphDatabaseService.execute(query);
+            ArrayList<SimpleLine> lines = new ArrayList<>();
+            SimpleLine simpleLine;
+            if(result !=null){
+                while(result.hasNext()) {
+                    System.out.println("QQ");
+                    HashMap res = new HashMap(result.next());
+                    simpleLine = new SimpleLine(res.get("full_name").toString(),"");
+                    System.out.println("size: "+ res.size());
+                    lines.add(simpleLine);
+                    //   lines.add(new SimpleLine("cla","bla","ala"));
+                    // lines.add(new SimpleLine("cla","bla","ala"));
+                    //  System.out.println("size: "+ res.size());
+                }
+            }
+
+            return lines;
+        }
+    }
+
+
+    public ArrayList<FuzzyLine> executeFuzzyApp(String appKey, boolean details) throws CypherException, IOException {
+        Result result;
+        ArrayList<FuzzyLine> fuzzyLines = new ArrayList<>();
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (cl:Class) WHERE cl.app_key='"+appKey+"' AND HAS(cl.is_interface) AND cl.number_of_methods > " + high + " RETURN cl.app_key as app_key,cl.number_of_methods as number_of_methods";
+            if(details){
+                query += ",cl.name as full_name";
+            }
+            result = graphDatabaseService.execute(query);
+            FuzzyLine fuzzyLine;
+
+            int cc;
+              File fcf = new File(fclFile);
+            //We look if the file is in a directory otherwise we look inside the jar
+            FIS fis;
+            if(fcf.exists() && !fcf.isDirectory()){
+                fis = FIS.load(fclFile, false);
+            }else{
+                fis = FIS.load(getClass().getResourceAsStream(fclFile),false);
+            }
+            FunctionBlock fb = fis.getFunctionBlock(null);
+            while(result.hasNext()){
+                HashMap res = new HashMap(result.next());
+                cc = Integer.parseInt(res.get("number_of_methods").toString());
+                fuzzyLine = new FuzzyLine(res.get("full_name").toString(),"");
+                if(cc >= veryHigh){
+                    fuzzyLine.setProbability(1);
+                }else {
+                    fb.setVariable("number_of_methods",cc);
+                    fb.evaluate();
+                 //   res.put("fuzzy_value", fb.getVariable("res").getValue());
+                    fuzzyLine.setProbability(fb.getVariable("res").getValue());
+                }
+                fuzzyLines.add(fuzzyLine);
+           //     fuzzyResult.add(res);
+            }
+          //  queryEngine.resultToCSV(fuzzyResult,columns,"_SAK.csv");
+        }
+        return fuzzyLines;
     }
 }

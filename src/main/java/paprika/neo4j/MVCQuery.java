@@ -1,8 +1,11 @@
 package paprika.neo4j;
 
+import com.guigarage.sdk.BDD.FuzzyLine;
+import com.guigarage.sdk.BDD.SimpleLine;
 import net.sourceforge.jFuzzyLogic.FIS;
 import net.sourceforge.jFuzzyLogic.FunctionBlock;
 import org.neo4j.cypher.CypherException;
+import org.neo4j.cypher.internal.compiler.v2_2.functions.Str;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
@@ -77,10 +80,10 @@ public class MVCQuery extends FuzzyQuery {
             FunctionBlock fb = fis.getFunctionBlock(null);
             while(result.hasNext()){
                 HashMap res = new HashMap(result.next());
-                camc = (float) res.get("cohesion_among_methods_of_class");
-                noa = (int) res.get("number_of_attributes");
-                nom = (int) res.get("number_of_methods");
-                nol = (int) res.get("number_of_lines");
+                camc = Float.parseFloat(res.get("cohesion_among_methods_of_class").toString());
+                noa = Integer.parseInt( res.get("number_of_attributes").toString());
+                nom = Integer.parseInt( res.get("number_of_methods").toString());
+                nol = Integer.parseInt( res.get("number_of_lines").toString());
                 if(camc <= veryLow_camc && noa >= veryHigh_noa && nom >= veryHigh_nom && nol>= veryHigh_nol){
                     res.put("fuzzy_value", 1);
                 }else {
@@ -95,6 +98,88 @@ public class MVCQuery extends FuzzyQuery {
             }
             queryEngine.resultToCSV(fuzzyResult,columns,"MVC.csv");
         }
+    }
+
+    public ArrayList<SimpleLine> executeApp(String appKey, boolean details) throws CypherException, IOException {
+        Result result;
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (cl:Class) WHERE cl.app_key='"+appKey+"' AND HAS(cl.is_view_controller) AND cl.cohesion_among_methods_of_class <"
+                    + low_camc + " AND cl.number_of_methods > " + veryHigh_nom + " AND cl.number_of_lines >"+high_nol+" RETURN cl.app_key as app_key";
+            if(details){
+                query += ",cl.name as full_name";
+            }else{
+                query += ",count(cl) as MVC";
+            }
+            result = graphDatabaseService.execute(query);
+            SimpleLine simpleLine;
+            ArrayList<SimpleLine> lines = new ArrayList<>();
+            if(result !=null){
+                while(result.hasNext()) {
+                    System.out.println("QQ");
+                    HashMap res = new HashMap(result.next());
+                    simpleLine = new SimpleLine(res.get("full_name").toString(),"");
+                    System.out.println("size: "+ res.size());
+                    lines.add(simpleLine);
+                    //   lines.add(new SimpleLine("cla","bla","ala"));
+                    // lines.add(new SimpleLine("cla","bla","ala"));
+                    //  System.out.println("size: "+ res.size());
+                }
+            }
+
+            return lines;
+        }
+    }
+
+
+    public ArrayList<FuzzyLine> executeFuzzyApp(String appKey, boolean details) throws CypherException, IOException {
+        Result result;
+        ArrayList<FuzzyLine> fuzzyLines = new ArrayList<>();
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (cl:Class) WHERE cl.app_key='"+appKey+"' AND HAS(cl.is_view_controller) AND cl.cohesion_among_methods_of_class <"+ low_camc
+                    + " AND cl.number_of_methods > "+ high_nom
+                    + " AND cl.number_of_attributes > "+ high_noa
+                    +  " AND cl.number_of_lines >"+high_nol
+                    +" RETURN cl.app_key as app_key,cl.cohesion_among_methods_of_class as cohesion_among_methods_of_class,cl.number_of_methods as number_of_methods, cl.number_of_attributes as number_of_attributes, cl.number_of_lines as number_of_lines";
+            if(details){
+                query += ",cl.name as full_name";
+            }
+            result = graphDatabaseService.execute(query);
+            FuzzyLine fuzzyLine;
+            int nol,noa,nom; double camc;
+
+            File fcf = new File(fclFile);
+            //We look if the file is in a directory otherwise we look inside the jar
+            FIS fis;
+            if(fcf.exists() && !fcf.isDirectory()){
+                fis = FIS.load(fclFile, false);
+            }else{
+                fis = FIS.load(getClass().getResourceAsStream(fclFile),false);
+            }
+            FunctionBlock fb = fis.getFunctionBlock(null);
+            while(result.hasNext()){
+                HashMap res = new HashMap(result.next());
+                fuzzyLine = new FuzzyLine(res.get("full_name").toString(), "");
+                camc = Float.parseFloat(res.get("cohesion_among_methods_of_class").toString());
+                noa = Integer.parseInt( res.get("number_of_attributes").toString());
+                nom = Integer.parseInt(res.get("number_of_methods").toString());
+                nol = Integer.parseInt( res.get("number_of_lines").toString());
+                if(camc <= veryLow_camc && noa >= veryHigh_noa && nom >= veryHigh_nom && nol>= veryHigh_nol){
+                    //res.put("fuzzy_value", 1);
+                    fuzzyLine.setProbability(1);
+                }else {
+                    fb.setVariable("cohesion_among_methods_of_class",camc);
+                    fb.setVariable("number_of_attributes",noa);
+                    fb.setVariable("number_of_methods",nom);
+                    fb.setVariable("number_of_lines",nol);
+                    fb.evaluate();
+                   // res.put("fuzzy_value", fb.getVariable("res").getValue());
+                    fuzzyLine.setProbability(fb.getVariable("res").getValue());
+                }
+                fuzzyLines.add(fuzzyLine);
+            }
+           // queryEngine.resultToCSV(fuzzyResult,columns,"MVC.csv");
+        }
+        return fuzzyLines;
     }
 
 

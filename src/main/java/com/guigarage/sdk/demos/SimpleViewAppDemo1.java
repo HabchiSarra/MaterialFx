@@ -2,6 +2,8 @@ package com.guigarage.sdk.demos;
 
 import com.guigarage.sdk.Application;
 import com.guigarage.sdk.BDD.BDDFacade;
+import com.guigarage.sdk.BDD.FuzzyLine;
+import com.guigarage.sdk.BDD.SimpleLine;
 import com.guigarage.sdk.BDD.TableLine;
 import com.guigarage.sdk.action.Action;
 import com.guigarage.sdk.chat.ChatTimeline;
@@ -9,7 +11,6 @@ import com.guigarage.sdk.chat.DefaultChatMessage;
 import com.guigarage.sdk.container.WorkbenchView;
 import com.guigarage.sdk.footer.ActionFooter;
 import com.guigarage.sdk.form.EditorType;
-
 import com.guigarage.sdk.form.FormLayout;
 import com.guigarage.sdk.image.SimpleImageView;
 import com.guigarage.sdk.list.DetailedMediaList;
@@ -17,6 +18,10 @@ import com.guigarage.sdk.list.MediaList;
 import com.guigarage.sdk.overlay.Overlay;
 import com.guigarage.sdk.table.MediaTable;
 import com.guigarage.sdk.util.*;
+import com.jfoenix.controls.JFXCheckBox;
+import com.jfoenix.controls.JFXRadioButton;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -24,14 +29,21 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
+import org.neo4j.graphdb.*;
 import paprika.analyzer.Analyzer;
 import paprika.model.PaprikaApp;
 import paprika.neo4j.QueryEngine;
+
+import javax.swing.table.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,8 +58,7 @@ public class SimpleViewAppDemo1 {
     public static boolean modified;
 
     public static void main(String... args) {
-
-         app = new Application();
+        app = new Application();
         app.setTitle("PAPRIKA iOS");
         app.setBaseColor(Color.rgb(30,160,118));
       //  app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_DOWN, () -> app.animateToolbarToLargeVersion()));
@@ -60,7 +71,7 @@ public class SimpleViewAppDemo1 {
         app.setToolbarBackgroundImage(SimpleViewAppDemo1.class.getResource("toolbar-background.png").toExternalForm());
         app.addMenuEntry(new Action(FontAwesomeIcons.PLUS, "Ajouter une application", () -> showAddApp(app)));
         app.addMenuEntry(new Action(FontAwesomeIcons.SEARCH, "Analyser une application", () -> showSearchApp(app)));
-        app.addMenuEntry(new Action(FontAwesomeIcons.LISTE, "Analyser le dataset", () -> showPersonTable(app)));
+        app.addMenuEntry(new Action(FontAwesomeIcons.LISTE, "Analyser le dataset", () -> showChooseAntipatternDataset()));
         app.addMenuEntry(new Action(FontAwesomeIcons.STATS, "Statistiques", () -> showPersonTable(app)));
         app.addMenuEntry(new Action(FontAwesomeIcons.LIST, "Afficher le dataset", () -> showDatasetApps(app)));
         app.addMenuEntry(new Action(FontAwesomeIcons.TRESHOLDS, "Afficher les seuils", () -> showTresholds(app)));
@@ -156,8 +167,477 @@ public class SimpleViewAppDemo1 {
         app.clearGlobalActions();
     }
 
+    public static void showChooseAntipatterns(String appKey){
+        FormLayout formLayout = new FormLayout();
+        formLayout.addHeader("Les patrons / anti-patrons");
+        final ToggleGroup group = new ToggleGroup();
+
+        JFXRadioButton rb1 = new JFXRadioButton("BLOB");
+
+        JFXCheckBox checkBox = new JFXCheckBox("Inclure les instances éventuelles");
+        rb1.setUserData("BLOB");
+        rb1.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+        rb1.setToggleGroup(group);
+        rb1.setSelected(true);
+        rb1.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb2 = new JFXRadioButton("Long Method");
+        rb2.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+
+        rb2.setUserData("Long Method");
+        rb2.setToggleGroup(group);
+        rb2.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb3 = new JFXRadioButton("Swiss Army Knife");
+        rb3.setUserData("Swiss Army Knife");
+        rb3.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+        rb3.setToggleGroup(group);
+        rb3.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb4 = new JFXRadioButton("Complex Class");
+        rb4.setUserData("Complex Class");
+        rb4.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+        rb4.setToggleGroup(group);
+        rb4.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb5 = new JFXRadioButton("Ignoring Low-Memory Warnings");
+        rb5.setUserData("Ignoring Low-Memory Warnings");
+        rb5.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                } else {
+                    checkBox.setVisible(true);
+                    // ...
+                }
+            }
+        });
+        rb5.setToggleGroup(group);
+        rb5.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb6 = new JFXRadioButton("Massive View Controller");
+        rb6.setUserData("Massive View Controller");
+        rb6.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+        rb6.setToggleGroup(group);
+        rb6.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb7 = new JFXRadioButton("Blocking the Main-Thread");
+        rb7.setUserData("Blocking the Main-Thread");
+        rb7.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                } else {
+                    checkBox.setVisible(true);
+                    // ...
+                }
+            }
+        });
+        rb7.setToggleGroup(group);
+        rb7.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb8 = new JFXRadioButton("VIPER");
+        rb8.setUserData("VIPER");
+        rb8.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                } else {
+                    checkBox.setVisible(true);
+                    // ...
+                }
+            }
+        });
+        rb8.setToggleGroup(group);
+        rb8.setPadding(new Insets(10,10,40,20));
+
+        VBox vBox = new VBox();
+     /*   Label label = new Label("Les patrons et anti-patrons");
+        label.setPadding(new Insets(40,10,40,50));*/
+        Label lblStyle = LabelBuilder.create().text("Le patron / anti-patron à détecter").styleClass("labelStyleClass").build();
+        lblStyle.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+    //    root.getChildren().add(lblStyle);
+        lblStyle.setPadding(new Insets(40,10,20,0));
+
+        vBox.setPadding(new Insets(10,10,10,100));
+        vBox.getChildren().addAll(lblStyle);
+        vBox.getChildren().addAll(rb1);
+        vBox.getChildren().addAll(rb2);
+        vBox.getChildren().addAll(rb3);
+        vBox.getChildren().addAll(rb4);
+        vBox.getChildren().addAll(rb5);
+        vBox.getChildren().addAll(rb6);
+        vBox.getChildren().addAll(rb7);
+        vBox.getChildren().addAll(rb8);
 
 
+        vBox.getChildren().addAll(checkBox);
+
+        Button button=new Button("Analyser");
+       HBox hBox = new HBox();
+        hBox.setPadding(new Insets(30,10,10,200));
+        hBox.getChildren().add(button);
+
+    //    button.setPadding(new Insets(20,10,10,200));
+     /*   button.setMaxWidth(100);
+        button.setPrefWidth(100);
+        button.setMinWidth(100);*/
+        vBox.getChildren().addAll(hBox);
+        button.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                //Object toggle=group.getSelectedToggle().getUserData();
+                String antipatttern = group.getSelectedToggle().getUserData().toString();
+                Boolean fuzzy = checkBox.isSelected();
+                showAnalysisResults(appKey,antipatttern,fuzzy);
+            }
+        });
+
+        WorkbenchView view = new WorkbenchView();
+
+        vBox.setMaxWidth(500);
+        vBox.setMinWidth(500);
+        vBox.setPrefWidth(500);
+        ScrollPane scrollPane = new ScrollPane();
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        scrollPane.setContent(vBox);
+        // scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+    }
+
+    private static void showAnalysisResults(String appKey, String antipattern, boolean fuzzy){
+        //Send Queries
+        if(!fuzzy) {
+            ArrayList<SimpleLine> lines;
+            lines=bddFacade.detectAntipattern(antipattern, appKey);
+
+            if(lines.size()!=0)
+            {
+                if(lines.get(0).getClassName().equals("")){
+
+                        showOneColumnsTable(lines,antipattern,appKey);
+
+                }else {
+                    showTwoColumnsTable(lines,antipattern,appKey);
+
+                }
+
+
+
+
+            }else{
+                showOneColumnsTable(lines,antipattern,appKey);
+            }
+        }
+        else{
+            ArrayList<FuzzyLine> lines;
+            lines = bddFacade.detectAntipatternFuzzy(antipattern,appKey);
+            if(lines.size()!=0)
+            {
+                if(lines.get(0).getClassName().equals("")){
+
+                    showFuzzyOneColumnTable(lines,antipattern,appKey);
+
+                }else {
+                    showFuzzyTwoColumnsTable(lines,antipattern,appKey);
+
+                }
+
+
+
+
+            }else{
+                Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+" dans "+appKey+" détectée.").styleClass("labelStyleClass").build();
+                label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+                WorkbenchView view = new WorkbenchView();
+                VBox vBox=new VBox();
+                vBox.getChildren().add(label);
+                vBox.setAlignment(Pos.CENTER);
+                //   label.setPadding(new Insets(0,0,0,250));
+                view.setCenterNode(vBox);
+                vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+                app.setWorkbench(view);
+                app.clearGlobalActions();
+            }
+        }
+    }
+
+    private static void showTwoColumnsTable(ArrayList<SimpleLine> lines, String antipattern,String appKey){
+        TableView<SimpleLine> table = new TableView<SimpleLine>();
+        table.setEditable(false);
+        TableColumn methodCol = new TableColumn("Méthode");
+        methodCol.setMinWidth(400);
+        TableColumn classCol = new TableColumn("Classe");
+        classCol.setMinWidth(400);
+        table.getStyleClass().add("my-table");
+        table.setMinWidth(800);
+        table.setMaxWidth(800);
+        table.setPrefWidth(800);
+        ScrollPane scrollPane=new ScrollPane();
+        scrollPane.setPadding(new Insets(50,0,0,0));
+
+        ObservableList<SimpleLine> observableList = FXCollections.observableList(lines);
+        methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
+        classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("className"));
+       // applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
+
+        table.setItems(observableList);
+
+        table.getColumns().addAll(methodCol, classCol);
+        //System.out.println("pss"+table.getItems());
+        VBox vBox=new VBox();
+        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées dans "+appKey).styleClass("labelStyleClass").build();
+        label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+        label.setPadding(new Insets(0,0,25,0));
+        //  table.setPadding(new Insets(50,20,20,20));
+        vBox.getChildren().addAll(label,table);
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setMinWidth(800);
+        vBox.setMaxWidth(900);
+        vBox.setPrefWidth(800);
+
+        scrollPane.setContent(vBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        WorkbenchView view = new WorkbenchView();
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+
+
+    }
+    private static void showFuzzyOneColumnTable(ArrayList<FuzzyLine> lines, String antipattern,String appKey){
+        TableView<FuzzyLine> table = new TableView<>();
+        table.setEditable(false);
+        TableColumn methodCol = new TableColumn("Classe");
+        methodCol.setMinWidth(400);
+        TableColumn classCol = new TableColumn("Probabilité %");
+        classCol.setSortType(TableColumn.SortType.DESCENDING);
+        classCol.setMinWidth(200);
+        table.getStyleClass().add("my-table");
+        table.setMinWidth(600);
+        table.setMaxWidth(600);
+        table.setPrefWidth(600);
+        ScrollPane scrollPane=new ScrollPane();
+        scrollPane.setPadding(new Insets(50,0,0,0));
+
+        ObservableList<FuzzyLine> observableList = FXCollections.observableList(lines);
+        methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
+        classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("probability"));
+        // applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
+
+        table.setItems(observableList);
+
+        table.getColumns().addAll(methodCol, classCol);
+        table.getSortOrder().add(classCol);
+        //System.out.println("pss"+table.getItems());
+        VBox vBox=new VBox();
+        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées dans "+appKey).styleClass("labelStyleClass").build();
+        label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+        label.setPadding(new Insets(0,0,25,0));
+        //  table.setPadding(new Insets(50,20,20,20));
+        vBox.getChildren().addAll(label,table);
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setMinWidth(800);
+        vBox.setMaxWidth(900);
+        vBox.setPrefWidth(800);
+
+        scrollPane.setContent(vBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        WorkbenchView view = new WorkbenchView();
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+
+
+    }
+
+
+
+    private static void showOneColumnsTable(ArrayList<SimpleLine> lines, String antipattern, String appKey){
+            if(lines.size()!=0){
+            TableView<SimpleLine> table = new TableView<SimpleLine>();
+            table.setEditable(false);
+            TableColumn methodCol = new TableColumn("Classe");
+            methodCol.setMinWidth(400);
+            //  TableColumn classCol = new TableColumn("Classe");
+            // classCol.setMinWidth(80);
+         //   TableColumn applicationCol = new TableColumn("Application");
+         //   applicationCol.setMinWidth(80);
+            table.getStyleClass().add("my-table");
+            table.setMinWidth(400);
+            table.setMaxWidth(400);
+            table.setPrefWidth(400);
+            ScrollPane scrollPane=new ScrollPane();
+            scrollPane.setPadding(new Insets(20,0,0,0));
+
+            ObservableList<SimpleLine> observableList = FXCollections.observableList(lines);
+            methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
+            //classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
+         //   applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
+
+            table.setItems(observableList);
+
+            table.getColumns().addAll(methodCol);
+            //System.out.println("pss"+table.getItems());
+
+            VBox vBox=new VBox();
+            Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées dans "+appKey).styleClass("labelStyleClass").build();
+            label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+            label.setPadding(new Insets(0,0,20,0));
+            vBox.getChildren().addAll(label,table);
+            vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setMinWidth(400);
+            vBox.setMaxWidth(900);
+            vBox.setPrefWidth(900);
+
+            scrollPane.setContent(vBox);
+
+            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            WorkbenchView view = new WorkbenchView();
+            view.setCenterNode(scrollPane);
+            app.setWorkbench(view);
+            app.clearGlobalActions();
+        }else{
+                Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+" dans "+appKey+" détectée.").styleClass("labelStyleClass").build();
+                label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+                WorkbenchView view = new WorkbenchView();
+                VBox vBox=new VBox();
+                vBox.getChildren().add(label);
+                vBox.setAlignment(Pos.CENTER);
+             //   label.setPadding(new Insets(0,0,0,250));
+                view.setCenterNode(vBox);
+                vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+                app.setWorkbench(view);
+                app.clearGlobalActions();
+
+
+            }
+
+
+    }
+
+    private static void showFuzzyTwoColumnsTable(ArrayList<FuzzyLine> lines, String antipattern,String appKey){
+        TableView<FuzzyLine> table = new TableView<>();
+        table.setEditable(false);
+        TableColumn methodCol = new TableColumn("Méthode");
+        methodCol.setMinWidth(300);
+        TableColumn secCol = new TableColumn("Classe");
+        secCol.setMaxWidth(300);
+        TableColumn classCol = new TableColumn("Probabilité %");
+        classCol.setMinWidth(150);
+        classCol.setSortType(TableColumn.SortType.DESCENDING);
+        table.getStyleClass().add("my-table");
+        table.setMinWidth(750);
+        table.setMaxWidth(750);
+        table.setPrefWidth(750);
+        ScrollPane scrollPane=new ScrollPane();
+        scrollPane.setPadding(new Insets(50,0,0,0));
+
+        ObservableList<FuzzyLine> observableList = FXCollections.observableList(lines);
+        methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
+        classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("probability"));
+         secCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
+
+        table.setItems(observableList);
+
+        table.getColumns().addAll(methodCol,secCol, classCol);
+        table.getSortOrder().add(classCol);
+        //System.out.println("pss"+table.getItems());
+        VBox vBox=new VBox();
+        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées dans "+appKey).styleClass("labelStyleClass").build();
+        label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+        label.setPadding(new Insets(0,0,25,0));
+        //  table.setPadding(new Insets(50,20,20,20));
+        vBox.getChildren().addAll(label,table);
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        vBox.setAlignment(Pos.CENTER);
+        vBox.setMinWidth(800);
+        vBox.setMaxWidth(900);
+        vBox.setPrefWidth(800);
+
+        scrollPane.setContent(vBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        WorkbenchView view = new WorkbenchView();
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+
+
+    }
+/*
     private static void showForm(Application app) {
         FormLayout formLayout = new FormLayout();
         formLayout.addHeader("Ich bin eine Form");
@@ -183,7 +663,7 @@ public class SimpleViewAppDemo1 {
 
         app.setWorkbench(view);
         app.clearGlobalActions();
-    }
+    */
 
     public static void showTresholds(Application app){
         TableView<TableLine> table = new TableView<TableLine>();
@@ -391,7 +871,7 @@ public class SimpleViewAppDemo1 {
 
     }
 
-    private static void showPersonTable(Application app) {
+    public static void showPersonTable(Application app) {
         WorkbenchView view = new WorkbenchView();
 
         MediaTable table = new MediaTable();
@@ -433,5 +913,263 @@ public class SimpleViewAppDemo1 {
         timeline.getItems().add(new DefaultChatMessage(false, "Oh no, I already have a date this evening with Steve. We want to go to a club. If you want you can come with us."));
         timeline.getItems().add(new DefaultChatMessage(true, "Cool, when do you want to start?"));
         return timeline;
+    }
+
+
+
+    private static void showChooseAntipatternDataset(){
+        final ToggleGroup group = new ToggleGroup();
+
+        JFXRadioButton rb1 = new JFXRadioButton("BLOB");
+
+        JFXCheckBox checkBox = new JFXCheckBox("Inclure les instances éventuelles");
+        JFXCheckBox checkBox2 = new JFXCheckBox("Exporter les résultats en CSV");
+        rb1.setUserData("BLOB");
+        rb1.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+        rb1.setToggleGroup(group);
+        rb1.setSelected(true);
+        rb1.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb2 = new JFXRadioButton("Long Method");
+        rb2.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+
+        rb2.setUserData("Long Method");
+        rb2.setToggleGroup(group);
+        rb2.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb3 = new JFXRadioButton("Swiss Army Knife");
+        rb3.setUserData("Swiss Army Knife");
+        rb3.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+        rb3.setToggleGroup(group);
+        rb3.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb4 = new JFXRadioButton("Complex Class");
+        rb4.setUserData("Complex Class");
+        rb4.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+        rb4.setToggleGroup(group);
+        rb4.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb5 = new JFXRadioButton("Ignoring Low-Memory Warnings");
+        rb5.setUserData("Ignoring Low-Memory Warnings");
+        rb5.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                } else {
+                    checkBox.setVisible(true);
+                    // ...
+                }
+            }
+        });
+        rb5.setToggleGroup(group);
+        rb5.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb6 = new JFXRadioButton("Massive View Controller");
+        rb6.setUserData("Massive View Controller");
+        rb6.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(true);
+                    // ...
+                } else {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                }
+            }
+        });
+        rb6.setToggleGroup(group);
+        rb6.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb7 = new JFXRadioButton("Blocking the Main-Thread");
+        rb7.setUserData("Blocking the Main-Thread");
+        rb7.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                } else {
+                    checkBox.setVisible(true);
+                    // ...
+                }
+            }
+        });
+        rb7.setToggleGroup(group);
+        rb7.setPadding(new Insets(10,10,10,20));
+        JFXRadioButton rb8 = new JFXRadioButton("VIPER");
+        rb8.setUserData("VIPER");
+        rb8.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> obs, Boolean wasPreviouslySelected, Boolean isNowSelected) {
+                if (isNowSelected) {
+                    checkBox.setVisible(false);
+                    checkBox.setSelected(false);
+                    // ...
+                } else {
+                    checkBox.setVisible(true);
+                    // ...
+                }
+            }
+        });
+        rb8.setToggleGroup(group);
+        rb8.setPadding(new Insets(10,10,40,20));
+
+        VBox vBox = new VBox();
+        Label lblStyle = LabelBuilder.create().text("Le patron / anti-patron à détecter").styleClass("labelStyleClass").build();
+        lblStyle.setStyle("-fx-font-size:22; -fx-font-family: 'Museo Slab 500';");
+
+        lblStyle.setPadding(new Insets(25,10,25,0));
+
+        vBox.setPadding(new Insets(10,10,10,100));
+        vBox.getChildren().addAll(lblStyle);
+        vBox.getChildren().addAll(rb1);
+        vBox.getChildren().addAll(rb2);
+        vBox.getChildren().addAll(rb3);
+        vBox.getChildren().addAll(rb4);
+        vBox.getChildren().addAll(rb5);
+        vBox.getChildren().addAll(rb6);
+        vBox.getChildren().addAll(rb7);
+        vBox.getChildren().addAll(rb8);
+
+        VBox vBox1 =new VBox();
+        vBox1.getChildren().add(checkBox2);
+        vBox1.setPadding(new Insets(20,0,0,0));
+        vBox.getChildren().addAll(checkBox, vBox1);
+
+        Button button=new Button("Analyser");
+        HBox hBox = new HBox();
+        hBox.setPadding(new Insets(30,10,10,200));
+        hBox.getChildren().add(button);
+
+        vBox.getChildren().addAll(hBox);
+        button.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+
+                String antipatttern = group.getSelectedToggle().getUserData().toString();
+                Boolean fuzzy = checkBox.isSelected();
+             //   showAnalysisResultsDataset(appKey,antipatttern,fuzzy);
+            }
+        });
+
+        WorkbenchView view = new WorkbenchView();
+
+        vBox.setMaxWidth(500);
+        vBox.setMinWidth(500);
+        vBox.setPrefWidth(500);
+        ScrollPane scrollPane = new ScrollPane();
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        scrollPane.setContent(vBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
+    }
+
+
+    private static void showAnalysisResultsDataset(String antipattern, boolean fuzzy){
+        //Send Queries
+        if(!fuzzy) {
+            ArrayList<SimpleLine> lines;
+            lines=bddFacade.detectAntipatternDataset(antipattern);
+
+            if(lines.size()!=0)
+            {
+                if(lines.get(0).getClassName().equals("")){
+
+                    showOneColumnsTable(lines,antipattern);
+
+                }else {
+                    showTwoColumnsTable(lines,antipattern);
+
+                }
+
+
+
+
+            }else{
+                showOneColumnsTable(lines,antipattern);
+            }
+        }
+        else{
+            ArrayList<FuzzyLine> lines;
+            lines = bddFacade.detectAntipatternFuzzy(antipattern);
+            if(lines.size()!=0)
+            {
+                if(lines.get(0).getClassName().equals("")){
+
+                    showFuzzyOneColumnTable(lines,antipattern);
+
+                }else {
+                    showFuzzyTwoColumnsTable(lines,antipattern);
+
+                }
+
+
+
+
+            }else{
+                Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+"  détectée.").styleClass("labelStyleClass").build();
+                label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+                WorkbenchView view = new WorkbenchView();
+                VBox vBox=new VBox();
+                vBox.getChildren().add(label);
+                vBox.setAlignment(Pos.CENTER);
+                //   label.setPadding(new Insets(0,0,0,250));
+                view.setCenterNode(vBox);
+                vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+                app.setWorkbench(view);
+                app.clearGlobalActions();
+            }
+        }
     }
 }

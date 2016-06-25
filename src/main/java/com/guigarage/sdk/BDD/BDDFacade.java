@@ -14,8 +14,7 @@ import paprika.analyzer.GraphsGenerator;
 import paprika.analyzer.MetricsCalculator;
 import paprika.analyzer.ModelGenerator;
 import paprika.model.PaprikaApp;
-import paprika.neo4j.ModelToGraph;
-import paprika.neo4j.QueryEngine;
+import paprika.neo4j.*;
 import paprika.parser.ObjCLexer;
 import paprika.parser.ObjCParser;
 import paprika.parser.ThrowingErrorListener;
@@ -249,12 +248,9 @@ public class BDDFacade {
 
     public void addApp(String path, String appName, String categoryName, String appKey){
         try {
-         //   queryEngine.shutDown();
-
             File f = new File(path);
             parse(f,appName,categoryName,appKey);
-           //queryEngine =new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
-           // SimpleViewAppDemo1.queryEngine = queryEngine;
+
         }catch (IOException ioe)
         {
             ioe.printStackTrace();
@@ -338,7 +334,162 @@ public class BDDFacade {
     }
 
 
+    public ArrayList<SimpleLine> detectAntipattern(String antipattern, String appKey){
+
+        ArrayList<SimpleLine> lines =new ArrayList<>();
+        try {
+
+            switch (antipattern){
+                case "BLOB":{
+                    BLOBQuery blobQuery= BLOBQuery.createBLOBQuery(queryEngine);
+                    System.out.println("aapppp  "+appKey);
+                    lines=blobQuery.executeApp(appKey, true);
+                    return lines;
 
 
+                }
+                case "Long Method": {
+                    LMQuery lmQuery=LMQuery.createLMQuery(queryEngine);
+                    lines=lmQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Complex Class": {
+                    CCQuery ccQuery=CCQuery.createCCQuery(queryEngine);
+                    lines=ccQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Blocking the Main-Thread":{
+                    CSCQuery cscQuery=CSCQuery.createCSCQuery(queryEngine);
+                    lines=cscQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Massive View Controller":{
+                    MVCQuery mvcQuery=MVCQuery.createMVCQuery(queryEngine);
+                    lines=mvcQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Ignoring Low-Memory Warnings" :{
+                    ILMWQuery ilmwQuery=ILMWQuery.createILMWQuery(queryEngine);
+                    lines=ilmwQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Swiss Army Knife":{
+                    SAKQuery sakQuery=SAKQuery.createSAKQuery(queryEngine);
+                    lines=sakQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "VIPER":{
+
+                    break;
+                }
+            default: break;
+            }
+
+
+        }catch (Exception exception){
+
+        }
+    return lines;
+    }
+
+    public ArrayList<FuzzyLine> detectAntipatternFuzzy(String antipattern, String appKey){
+
+        ArrayList<FuzzyLine> lines =new ArrayList<>();
+        try {
+
+            switch (antipattern){
+                case "BLOB":{
+                    BLOBQuery blobQuery= BLOBQuery.createBLOBQuery(queryEngine);
+                    lines=blobQuery.executeFuzzyApp(appKey, true);
+                    return lines;
+                }
+                case "Long Method": {
+                    LMQuery lmQuery=LMQuery.createLMQuery(queryEngine);
+                    System.out.println("LM");
+                    lines=lmQuery.executeFuzzyApp(appKey,true);
+                    break;
+                }
+                case "Complex Class": {
+                    CCQuery ccQuery=CCQuery.createCCQuery(queryEngine);
+                    lines=ccQuery.executeFuzzyApp(appKey,true);
+                    break;
+                }
+                case "Massive View Controller":{
+                    MVCQuery mvcQuery=MVCQuery.createMVCQuery(queryEngine);
+                    lines=mvcQuery.executeFuzzyApp(appKey,true);
+                    break;
+                }
+                case "Swiss Army Knife":{
+                    SAKQuery sakQuery=SAKQuery.createSAKQuery(queryEngine);
+                    lines=sakQuery.executeFuzzyApp(appKey,true);
+                    break;
+                }
+                default: break;
+            }
+
+
+        }catch (Exception exception){
+
+        }
+        return lines;
+    }
+
+    public ArrayList<DatasetSimpleLine> detectAntipatternDataset(String antipattern, String appKey){
+
+        ArrayList<DatasetSimpleLine> lines =new ArrayList<>();
+        try {
+
+            switch (antipattern){
+                case "BLOB":{
+                    BLOBQuery blobQuery= BLOBQuery.createBLOBQuery(queryEngine);
+                    System.out.println("aapppp  "+appKey);
+                    lines=blobQuery.executeApp(appKey, true);
+                    return lines;
+
+
+                }
+                case "Long Method": {
+                    LMQuery lmQuery=LMQuery.createLMQuery(queryEngine);
+                    lines=lmQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Complex Class": {
+                    CCQuery ccQuery=CCQuery.createCCQuery(queryEngine);
+                    lines=ccQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Blocking the Main-Thread":{
+                    CSCQuery cscQuery=CSCQuery.createCSCQuery(queryEngine);
+                    lines=cscQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Massive View Controller":{
+                    MVCQuery mvcQuery=MVCQuery.createMVCQuery(queryEngine);
+                    lines=mvcQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Ignoring Low-Memory Warnings" :{
+                    ILMWQuery ilmwQuery=ILMWQuery.createILMWQuery(queryEngine);
+                    lines=ilmwQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "Swiss Army Knife":{
+                    SAKQuery sakQuery=SAKQuery.createSAKQuery(queryEngine);
+                    lines=sakQuery.executeApp(appKey,true);
+                    break;
+                }
+                case "VIPER":{
+
+                    break;
+                }
+                default: break;
+            }
+
+
+        }catch (Exception exception){
+
+        }
+        return lines;
+    }
 
 }

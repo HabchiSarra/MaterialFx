@@ -1,5 +1,7 @@
 package paprika.neo4j;
 
+import com.guigarage.sdk.BDD.FuzzyLine;
+import com.guigarage.sdk.BDD.SimpleLine;
 import net.sourceforge.jFuzzyLogic.FIS;
 import net.sourceforge.jFuzzyLogic.FunctionBlock;
 import org.neo4j.cypher.CypherException;
@@ -80,4 +82,75 @@ public class LMQuery extends FuzzyQuery{
             }
     }
 
+    public ArrayList<SimpleLine> executeApp(String appKey, boolean details) throws CypherException, IOException {
+        Result result;
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (m:Method) WHERE m.app_key='"+appKey+"' AND  m.number_of_lines >" + veryHigh + " RETURN m.app_key as app_key, m.name as name";
+            if(details){
+                query += ",m.full_name as full_name";
+            }else{
+                query += ",count(m) as LM";
+            }
+            result = graphDatabaseService.execute(query);
+            String classname;
+            String[] tabString;
+            ArrayList<SimpleLine> lines = new ArrayList<>();
+            if(result !=null){
+                while(result.hasNext()) {
+                    HashMap res = new HashMap(result.next());
+
+                    tabString = res.get("full_name").toString().split("#");
+                    classname=tabString[1];
+                    lines.add(new SimpleLine(res.get("name").toString(),classname));
+                }
+            }
+            return lines;
+        }
+    }
+
+
+    public ArrayList<FuzzyLine> executeFuzzyApp(String appKey, boolean details) throws CypherException, IOException {
+        Result result;
+        ArrayList<FuzzyLine> fuzzyLines = new ArrayList<>();
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query =  "MATCH (m:Method) WHERE m.app_key='"+appKey+"' AND m.number_of_lines >" + high + " RETURN m.app_key as app_key, m.number_of_lines as number_of_lines, m.name as name";
+            if(details){
+                query += ",m.full_name as full_name";
+            }
+            result = graphDatabaseService.execute(query);
+            int cc;
+            File fcf = new File(fclFile);
+            //We look if the file is in a directory otherwise we look inside the jar
+            FuzzyLine fuzzyLine;
+            String[] tabString;
+            String classname;
+            FIS fis;
+            if(fcf.exists() && !fcf.isDirectory()){
+                fis = FIS.load(fclFile, false);
+            }else{
+                fis = FIS.load(getClass().getResourceAsStream(fclFile),false);
+            }
+            FunctionBlock fb = fis.getFunctionBlock(null);
+            while(result.hasNext()){
+                HashMap res = new HashMap(result.next());
+
+                tabString = res.get("full_name").toString().split("#");
+                classname=tabString[1];
+                fuzzyLine=new FuzzyLine(res.get("name").toString(), classname);
+                cc = (int) res.get("number_of_lines");
+                if(cc >= veryHigh){
+                   // res.put("fuzzy_value", 1);
+                    fuzzyLine.setProbability(1);
+                }else {
+                    fb.setVariable("number_of_lines",cc);
+                    fb.evaluate();
+                   // res.put("fuzzy_value", fb.getVariable("res").getValue());
+                    fuzzyLine.setProbability(fb.getVariable("res").getValue());
+                }
+                fuzzyLines.add(fuzzyLine);
+            }
+
+        }
+        return fuzzyLines;
+    }
 }

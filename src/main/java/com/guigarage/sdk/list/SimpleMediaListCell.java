@@ -34,8 +34,8 @@ public class SimpleMediaListCell<T extends Media> extends MediaListCell<T> {
         int index = getIndex();
         //    MultipleSelectionModel sm = lv.getSelectionModel();
           lv.getSelectionModel().clearAndSelect(index);
-        System.out.println(lv.getItems().get(index).titleProperty().getValue());
-        SimpleViewAppDemo1.showTresholds(SimpleViewAppDemo1.app);
+       // System.out.println(lv.getItems().get(index).titleProperty().getValue());
+        SimpleViewAppDemo1.showChooseAntipatterns(lv.getItems().get(index).titleProperty().getValue());
     }
 
     public static <T extends Media> Callback<ListView<T>, ListCell<T>> createDefaultCallback() {
