@@ -25,13 +25,13 @@ public class TableLine {
 
     public static TableLine createTableLine(String metric, Map<String, Double> values){
         System.out.println("Map = null"+ (values == null));
-        double number =values.get("Q1");
 
 
 
-        TableLine tableLine=new TableLine(metric, values.get("MED"), round(values.get("Q1"),3),
-                values.get("Q3"), values.get("HIGH (1.5)"), values.get("VERY HIGH (3.0)"));
-        System.out.println("HIGH (1.5)"+ tableLine.veryHigh +" "+ tableLine.median + " "+tableLine.q3);
+
+        TableLine tableLine=new TableLine(metric, round(values.get("MED"),3), round(values.get("Q1"),3),
+                round(values.get("Q3"),3), round(values.get("HIGH (1.5)"),3), round(values.get("VERY HIGH (3.0)"),3));
+      //  System.out.println("HIGH (1.5)"+ tableLine.veryHigh +" "+ tableLine.median + " "+tableLine.q3);
         return tableLine;
     }
 

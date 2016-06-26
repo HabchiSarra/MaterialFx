@@ -48,6 +48,23 @@ public class SAKQuery extends FuzzyQuery{
             queryEngine.resultToCSV(result,"_SAK_NO_FUZZY.csv");
         }
     }
+
+    public HashMap<String, Integer> count()  {
+        Result result;
+        HashMap<String, Integer> res = new HashMap<>();
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query ="MATCH (cl:Class) WHERE HAS(cl.is_interface) AND cl.number_of_methods >" + veryHigh +
+                    "  RETURN count(cl) as class_cpt, count(distinct(cl.app_key)) as app_cpt";
+
+            result = graphDatabaseService.execute(query);
+            HashMap hashMap =new HashMap(result.next());
+            res.put("class_cpt",Integer.parseInt(hashMap.get("class_cpt").toString()));
+            res.put("app_cpt",Integer.parseInt(hashMap.get("app_cpt").toString()));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
+    }
     public ArrayList<DatasetSimpleLine> executeDataset(boolean csv, boolean details) throws CypherException, IOException {
         Result result;
 
@@ -70,7 +87,6 @@ public class SAKQuery extends FuzzyQuery{
                     list.add(res);
                     simpleLine = new DatasetSimpleLine(res.get("full_name").toString(),"",res.get("app_key").toString());
                     lines.add(simpleLine);
-                    System.out.println("Here");
                 }
             }
             if(csv)

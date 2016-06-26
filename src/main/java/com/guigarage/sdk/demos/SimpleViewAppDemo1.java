@@ -21,10 +21,18 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -39,6 +47,7 @@ import org.neo4j.graphdb.*;
 import paprika.analyzer.Analyzer;
 import paprika.model.PaprikaApp;
 import paprika.neo4j.QueryEngine;
+import paprika.neo4j.VIPERQuery;
 
 import javax.swing.table.*;
 import java.io.File;
@@ -69,7 +78,7 @@ public class SimpleViewAppDemo1 {
         app.addMenuEntry(new Action(FontAwesomeIcons.PLUS, "Ajouter une application", () -> showAddApp(app)));
         app.addMenuEntry(new Action(FontAwesomeIcons.SEARCH, "Analyser une application", () -> showSearchApp(app)));
         app.addMenuEntry(new Action(FontAwesomeIcons.LISTE, "Analyser le dataset", () -> showChooseAntipatternDataset()));
-        app.addMenuEntry(new Action(FontAwesomeIcons.STATS, "Statistiques", () -> showPersonTable(app)));
+        app.addMenuEntry(new Action(FontAwesomeIcons.STATS, "Statistiques", () -> showStatistics()));
         app.addMenuEntry(new Action(FontAwesomeIcons.LIST, "Afficher le dataset", () -> showDatasetApps(app)));
         app.addMenuEntry(new Action(FontAwesomeIcons.TRESHOLDS, "Afficher les seuils", () -> showTresholds(app)));
        /* app.addMenuEntry(new Action(FontAwesomeIcons.MAIL, "Toogle App Color", () -> {
@@ -140,29 +149,140 @@ public class SimpleViewAppDemo1 {
         formLayout.addHeader("Les informations");
         TextField name= (TextField) formLayout.addSpecialField("Nom de l'application", EditorType.TEXTFIELD);
         TextField key= (TextField) formLayout.addSpecialField("Clé", EditorType.TEXTFIELD);
-        ComboBox category= (ComboBox) formLayout.addSpecialField("Chemin", EditorType.COMBOBOX);
+        ComboBox category= (ComboBox) formLayout.addSpecialField("Catégorie", EditorType.COMBOBOX);
         Action ajouter = new Action("Ajouter");
         ajouter.setCallback(() -> {
-                    String path =textField.getText().toString();
-                    String appName = name.getText().toString();
-                    String appKey = key.getText().toString();
-                    String categoryName = category.getValue().toString();
-            bddFacade.addApp(path,appName,categoryName,appKey);
+            String path =textField.getText().toString();
+            String appName = name.getText().toString();
+            String appKey = key.getText().toString();
+            String categoryName = category.getValue().toString();
+            final Cursor oldCursor =app.getScene().getCursor();
+            app.getScene().setCursor(Cursor.WAIT);
+            WorkbenchView view= new WorkbenchView();
+            VBox vBox = new VBox();
+            VBox hBox=new VBox();
+            Label label = new Label("Traitment en cours ...");
+            label.setStyle("-fx-font-size: 28;");
+            hBox.getChildren().add(label);
+
+            SimpleImageView simpleImageView=new SimpleImageView();
+            simpleImageView.setImage(SimpleViewAppDemo1.class.getResource("done.png").toExternalForm());
+            simpleImageView.setMaxSize(100,80);
+
+
+            Button button = new Button("Analyser");
+            //hBox.getChildren().add(button);
+            hBox.setPadding(new Insets(0,0,30,0));
+            hBox.setSpacing(10);
+
+            hBox.setAlignment(Pos.CENTER);
+            vBox.getChildren().addAll(hBox);//,list);
+            vBox.setPadding(new Insets(0,0,0,0));
+            // hBox.translateXProperty().bind(vBox.widthProperty().subtract(hBox.widthProperty()).divide(2));
+            vBox.setAlignment(Pos.CENTER);
+            //vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+            view.setCenterNode(vBox);
+            view.setPadding(new Insets(0,0,0,0));
+            button.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    System.out.println("Hello World!");
+                }
+            });
+            app.setWorkbench(view);
+            app.clearGlobalActions();
+
+            final Service<Void> calculateService = new Service<Void>() {
+
+                @Override
+                protected Task<Void> createTask() {
+                    return new Task<Void>() {
+
+                        @Override
+                        protected Void call() throws Exception {
+
+
+                           bddFacade.addApp(path,appName,categoryName,appKey);
+                            return null;
+                        }
+                    };
+                }
+            };
+            calculateService.stateProperty().addListener(new ChangeListener<Worker.State>() {
+
+                @Override
+                public void changed(ObservableValue<? extends Worker.State> observableValue, Worker.State oldValue, Worker.State newValue)
+                {
+                    switch (newValue) {
+                        case FAILED:
+                            System.out.print("Error");
+
+                        case CANCELLED:
+                        case SUCCEEDED:
+                            app.getScene().setCursor(oldCursor);
+                            System.out.println("fin du traitememt avec succes");
+                            WorkbenchView view= new WorkbenchView();
+                            VBox vBox = new VBox();
+                            VBox hBox=new VBox();
+                            Label label = new Label("Application ajoutée avec succès");
+                            label.setStyle("-fx-font-size: 24;");
+
+
+                            SimpleImageView simpleImageView=new SimpleImageView();
+                            simpleImageView.setImage(SimpleViewAppDemo1.class.getResource("done.png").toExternalForm());
+                            simpleImageView.setMaxSize(80,60);
+
+                            hBox.getChildren().add(simpleImageView);
+                            hBox.getChildren().add(label);
+                            Button button = new Button("Analyser");
+
+                            hBox.getChildren().add(button);
+                            hBox.setPadding(new Insets(0,0,30,0));
+                            hBox.setSpacing(20);
+
+                            hBox.setAlignment(Pos.CENTER);
+                            vBox.getChildren().addAll(hBox);//,list);
+                            vBox.setPadding(new Insets(0,0,0,0));
+                            // hBox.translateXProperty().bind(vBox.widthProperty().subtract(hBox.widthProperty()).divide(2));
+                            vBox.setAlignment(Pos.CENTER);
+                            //vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+                            view.setCenterNode(vBox);
+                            view.setPadding(new Insets(0,0,0,0));
+                            button.setOnAction(new EventHandler<ActionEvent>() {
+                                @Override
+                                public void handle(ActionEvent event) {
+                                    showChooseAntipatterns(appKey);
+                                }
+                            });
+                            app.setWorkbench(view);
+                            app.clearGlobalActions();
+                            break;
+                    }
+                }
+            });
+
+            calculateService.start();
+
+
+            //bddFacade.addApp(path,appName,categoryName,appKey);
             modified=true;
         });
-     //   Action annuler = new Action("Annuler", ()->addApplication(app));
+
+        //   Action annuler = new Action("Annuler", ()->addApplication(app));
         formLayout.addActions(ajouter);//, annuler);
         ScrollPane scrollPane = new ScrollPane();
         formLayout.translateXProperty().bind(scrollPane.widthProperty().subtract(formLayout.widthProperty()).divide(2));
         scrollPane.setContent(formLayout);
-      // scrollPane.setFitToWidth(true);
+        // scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         WorkbenchView view = new WorkbenchView();
         view.setCenterNode(scrollPane);
         app.setWorkbench(view);
         app.clearGlobalActions();
+
     }
+
 
     public static void showChooseAntipatterns(String appKey){
         FormLayout formLayout = new FormLayout();
@@ -368,52 +488,63 @@ public class SimpleViewAppDemo1 {
         app.clearGlobalActions();
     }
 
-    private static void showAnalysisResults(String appKey, String antipattern, boolean fuzzy){
-        //Send Queries
-        if(!fuzzy) {
-            ArrayList<SimpleLine> lines;
-            lines=bddFacade.detectAntipattern(antipattern, appKey);
-
-            if(lines.size()!=0)
-            {
-                if(lines.get(0).getClassName().equals("")){
-
-                        showOneColumnTable(lines,antipattern,appKey);
-
-                }else {
-                    showTwoColumnsTable(lines,antipattern,appKey);
-
-                }
-
-
-
-
-            }else{
-                showOneColumnTable(lines,antipattern,appKey);
+    private static void showAnalysisResults(String appKey, String antipattern, boolean fuzzy) {
+        if (antipattern.equals("VIPER")) {
+            String res;
+            if (VIPERQuery.createVIPERQuery(queryEngine).executeApp(appKey)) {
+                res = appKey + " est une instance de VIPER";
+            } else {
+                res = appKey + " n'est pas une instance de VIPER";
             }
-        }
-        else{
-            ArrayList<FuzzyLine> lines;
-            lines = bddFacade.detectAntipatternFuzzy(antipattern,appKey);
-            if(lines.size()!=0)
-            {
-                if(lines.get(0).getClassName().equals("")){
+            Label label = LabelBuilder.create().text(res).styleClass("labelStyleClass").build();
+            label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+            WorkbenchView view = new WorkbenchView();
+            VBox vBox = new VBox();
+            vBox.getChildren().add(label);
+            vBox.setAlignment(Pos.CENTER);
+            //   label.setPadding(new Insets(0,0,0,250));
+            view.setCenterNode(vBox);
+            vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+            app.setWorkbench(view);
+            app.clearGlobalActions();
+        } else {
+            if (!fuzzy) {
+            ArrayList<SimpleLine> lines;
+            lines = bddFacade.detectAntipattern(antipattern, appKey);
 
-                    showFuzzyOneColumnTable(lines,antipattern,appKey);
+            if (lines.size() != 0) {
+                if (lines.get(0).getClassName().equals("")) {
 
-                }else {
-                    showFuzzyTwoColumnsTable(lines,antipattern,appKey);
+                    showOneColumnTable(lines, antipattern, appKey);
+
+                } else {
+                    showTwoColumnsTable(lines, antipattern, appKey);
 
                 }
 
 
+            } else {
+                showOneColumnTable(lines, antipattern, appKey);
+            }
+        } else {
+            ArrayList<FuzzyLine> lines;
+            lines = bddFacade.detectAntipatternFuzzy(antipattern, appKey);
+            if (lines.size() != 0) {
+                if (lines.get(0).getClassName().equals("")) {
+
+                    showFuzzyOneColumnTable(lines, antipattern, appKey);
+
+                } else {
+                    showFuzzyTwoColumnsTable(lines, antipattern, appKey);
+
+                }
 
 
-            }else{
-                Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+" dans "+appKey+" détectée.").styleClass("labelStyleClass").build();
+            } else {
+                Label label = LabelBuilder.create().text("Aucune instance de " + antipattern + " dans " + appKey + " détectée.").styleClass("labelStyleClass").build();
                 label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
                 WorkbenchView view = new WorkbenchView();
-                VBox vBox=new VBox();
+                VBox vBox = new VBox();
                 vBox.getChildren().add(label);
                 vBox.setAlignment(Pos.CENTER);
                 //   label.setPadding(new Insets(0,0,0,250));
@@ -423,6 +554,7 @@ public class SimpleViewAppDemo1 {
                 app.clearGlobalActions();
             }
         }
+    }
     }
 
     private static void showTwoColumnsTable(ArrayList<SimpleLine> lines, String antipattern,String appKey){
@@ -583,6 +715,69 @@ public class SimpleViewAppDemo1 {
 
     }
 
+    private static void showOneColumnDataset(ArrayList<DatasetSimpleLine> lines, String antipattern){
+        if(lines.size()!=0){
+            TableView<DatasetSimpleLine> table = new TableView<DatasetSimpleLine>();
+            table.setEditable(false);
+            TableColumn methodCol = new TableColumn("Application");
+            methodCol.setPrefWidth(380);
+            //  TableColumn classCol = new TableColumn("Classe");
+            // classCol.setMinWidth(80);
+            //   TableColumn applicationCol = new TableColumn("Application");
+            //   applicationCol.setMinWidth(80);
+            table.getStyleClass().add("my-table");
+            table.setMinWidth(400);
+            table.setMaxWidth(400);
+            table.setPrefWidth(400);
+            ScrollPane scrollPane=new ScrollPane();
+            scrollPane.setPadding(new Insets(20,0,0,0));
+
+            ObservableList<DatasetSimpleLine> observableList = FXCollections.observableList(lines);
+            methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
+            //classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
+            //   applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
+
+            table.setItems(observableList);
+
+            table.getColumns().addAll(methodCol);
+            //System.out.println("pss"+table.getItems());
+
+            VBox vBox=new VBox();
+            Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées").styleClass("labelStyleClass").build();
+            label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+            label.setPadding(new Insets(0,0,20,0));
+            vBox.getChildren().addAll(label,table);
+            vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setMinWidth(400);
+            vBox.setMaxWidth(900);
+            vBox.setPrefWidth(900);
+
+            scrollPane.setContent(vBox);
+
+            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            WorkbenchView view = new WorkbenchView();
+            view.setCenterNode(scrollPane);
+            app.setWorkbench(view);
+            app.clearGlobalActions();
+        }else{
+            Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+"  détectée.").styleClass("labelStyleClass").build();
+            label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+            WorkbenchView view = new WorkbenchView();
+            VBox vBox=new VBox();
+            vBox.getChildren().add(label);
+            vBox.setAlignment(Pos.CENTER);
+            //   label.setPadding(new Insets(0,0,0,250));
+            view.setCenterNode(vBox);
+            vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+            app.setWorkbench(view);
+            app.clearGlobalActions();
+        }
+
+
+    }
+
     private static void showFuzzyTwoColumnsTable(ArrayList<FuzzyLine> lines, String antipattern,String appKey){
         TableView<FuzzyLine> table = new TableView<>();
         table.setEditable(false);
@@ -708,7 +903,8 @@ public class SimpleViewAppDemo1 {
         DetailedMediaList<DetailedMedia> list = new DetailedMediaList<>();
         VBox vBox = new VBox();
         HBox hBox=new HBox();
-        hBox.getChildren().add(new TextField());
+        TextField textField =new TextField();
+        hBox.getChildren().add(textField);
         Button button = new Button("Rechercher");
         hBox.getChildren().add(button);
         hBox.setPadding(new Insets(0,0,30,0));
@@ -740,12 +936,20 @@ public class SimpleViewAppDemo1 {
             }
         });
 
-       /* ActionFooter footer = new ActionFooter();
-        footer.addAction(new Action(FontAwesomeIcons.PHONE, "Call"));
-        footer.addAction(new Action(FontAwesomeIcons.MAIL, "Send message", () -> view.setCenterNode(createChatTimeline())));
-        footer.setMaxWidth(700);
-        footer.setPrefWidth(700);
-        view.setFooterNode(footer);*/
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+            String text=newValue;
+            ArrayList<PaprikaApp> searchList1 = new ArrayList<PaprikaApp>();
+            for(PaprikaApp application: paprikaApps){
+                if(application.getName().toLowerCase().contains(text.toLowerCase())){
+                    searchList1.add(application);
+                }
+            }
+            list.getItems().clear();
+            for(PaprikaApp application:searchList1){
+                list.getItems().add(new DetailedDefaultMedia(application.getName(),"Catégorie: "+ application.getCategory(), "Clé: "+application.getAppKey(), "Nombre de classes: "+application.getNumberOfClasses()));
+
+            }
+        });
         app.setWorkbench(view);
         app.clearGlobalActions();
 
@@ -755,7 +959,7 @@ public class SimpleViewAppDemo1 {
 
     private static void showSearchApp(Application app) {
         WorkbenchView view = new WorkbenchView();
-        ArrayList<PaprikaApp> searchList;
+       // ArrayList<PaprikaApp> searchList;
         MediaList<Media> list = new MediaList<>();
         VBox vBox = new VBox();
         HBox hBox=new HBox();
@@ -769,7 +973,7 @@ public class SimpleViewAppDemo1 {
         {
             paprikaApps= bddFacade.getApps();
         }
-        searchList=paprikaApps;
+       // searchList=paprikaApps;
         for(PaprikaApp application:paprikaApps){
             list.getItems().add(new DefaultMedia(application.getName(),"Catégorie: "+ application.getCategory()));
 
@@ -839,56 +1043,11 @@ public class SimpleViewAppDemo1 {
 
     }
 
-    public static void showPersonTable(Application app) {
-        WorkbenchView view = new WorkbenchView();
-
-        MediaTable table = new MediaTable();
-
-        table.getItems().add(new DefaultMedia("Test01", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-01.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test02", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-02.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test03", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-03.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test04", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-04.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test05", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-05.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test06", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-06.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test07", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-07.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test08", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-08.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test09", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-09.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test10", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-10.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test11", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-11.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test12", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-12.jpg").toExternalForm()));
-        table.getItems().add(new DefaultMedia("Test13", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("user-13.jpg").toExternalForm()));
-
-        view.setCenterNode(table);
-
-        ActionFooter footer = new ActionFooter();
-        footer.addAction(new Action(FontAwesomeIcons.PHONE, "Call"));
-        footer.addAction(new Action(FontAwesomeIcons.MAIL, "Send message", () -> view.setCenterNode(createChatTimeline())));
-        view.setFooterNode(footer);
-
-        app.setWorkbench(view);
-
-        app.clearGlobalActions();
-        app.addGlobalAction(new Action(FontAwesomeIcons.VOLUMNE_DOWN));
-        app.addGlobalAction(new Action(FontAwesomeIcons.VOLUMNE_UP));
-    }
-
-    private static ChatTimeline<DefaultChatMessage> createChatTimeline() {
-        ChatTimeline<DefaultChatMessage> timeline = new ChatTimeline<>();
-        timeline.getItems().add(new DefaultChatMessage(true, "Hello"));
-        timeline.getItems().add(new DefaultChatMessage(false, "How are you"));
-        timeline.getItems().add(new DefaultChatMessage(true, "Fine, thanks. Do you want to go to the cinema today?"));
-        timeline.getItems().add(new DefaultChatMessage(true, "Or having some drinks?"));
-        timeline.getItems().add(new DefaultChatMessage(false, "Oh no, I already have a date this evening with Steve. We want to go to a club. If you want you can come with us."));
-        timeline.getItems().add(new DefaultChatMessage(true, "Cool, when do you want to start?"));
-        return timeline;
-    }
-
-
 
     private static void showChooseAntipatternDataset(){
         final ToggleGroup group = new ToggleGroup();
 
-        JFXRadioButton rb1 = new JFXRadioButton("BLOB");
+        RadioButton rb1 = new JFXRadioButton("BLOB");
 
         JFXCheckBox checkBox = new JFXCheckBox("Inclure les instances éventuelles");
         JFXCheckBox checkBox2 = new JFXCheckBox("Exporter les résultats en CSV");
@@ -906,6 +1065,7 @@ public class SimpleViewAppDemo1 {
                 }
             }
         });
+        rb1.getStyleClass().add("red-radio-button");
         rb1.setToggleGroup(group);
         rb1.setSelected(true);
         rb1.setPadding(new Insets(10,10,10,20));
@@ -1095,11 +1255,14 @@ public class SimpleViewAppDemo1 {
             if(lines.size()!=0)
             {
                 if(lines.get(0).getClassName().equals("")){
-
-                    showTwoColumnsDataset(lines,antipattern);
+                    if(lines.get(0).getApplicationName().equals("")){
+                        showOneColumnDataset(lines,antipattern);
+                    }else
+                    {
+                        showTwoColumnsDataset(lines,antipattern);
+                    }
 
                 }else {
-                    System.out.println("mido raged");
                    showThreeColumnsDataset(lines,antipattern);
 
                 }
@@ -1340,6 +1503,90 @@ public class SimpleViewAppDemo1 {
         app.setWorkbench(view);
         app.clearGlobalActions();
 
+
+    }
+
+    private static void showStatistics(){
+
+        final  String blob = "BLOB";
+        final  String cc = "Complex Class";
+        final  String sak = "Swiss Army Knife";
+        final  String lm = "Long Method";
+        final  String ilm = "Ignoring Low Memory";
+        final  String mvc = "Massive View Controller";
+        final  String csc = "Blocking the Main Thread";
+        final  String viper = "VIPER";
+
+
+        final CategoryAxis xAxis = new CategoryAxis();
+        final NumberAxis yAxis = new NumberAxis();
+        final BarChart<String,Number> bc =
+                new BarChart<String,Number>(xAxis,yAxis);
+
+        bc.setTitle("Statistiques par rapport aux applications");
+        xAxis.setLabel("Antipatron");
+        yAxis.setLabel("Pourcentage (%) ");
+
+        XYChart.Series series1 = new XYChart.Series();
+        ArrayList<Double> ratioBlob=bddFacade.calculateRatioBLOB();
+        ArrayList<Double> ratioCC=bddFacade.calculateRatioCC();
+        ArrayList<Double> ratioSAK=bddFacade.calculateRatioSAK();
+        ArrayList<Double> ratioILMW=bddFacade.calculateRatioILMW();
+        ArrayList<Double> ratioLM=bddFacade.calculateRatioLM();
+        ArrayList<Double> ratioMVC= bddFacade.calculateRatioMVC();
+        ArrayList<Double> ratioVIPER=bddFacade.calculateRatioVIPER();
+        ArrayList<Double> ratioCSC=bddFacade.calculateRatioCSC();
+        series1.setName("Sans logique floue");
+        series1.getData().add(new XYChart.Data(blob, ratioBlob.get(0)));
+        series1.getData().add(new XYChart.Data(cc ,ratioCC.get(0)));
+        series1.getData().add(new XYChart.Data(sak, ratioSAK.get(0)));
+        series1.getData().add(new XYChart.Data(ilm, ratioILMW.get(0)));
+        series1.getData().add(new XYChart.Data(lm, ratioLM.get(0)));
+        series1.getData().add(new XYChart.Data(mvc, ratioMVC.get(0)));
+        series1.getData().add(new XYChart.Data(viper, ratioVIPER.get(0)));
+        series1.getData().add(new XYChart.Data(csc, ratioCSC.get(0)));
+
+
+
+       final CategoryAxis xAxis1 = new CategoryAxis();
+        final NumberAxis yAxis1 = new NumberAxis();
+        final BarChart<String,Number> bc1 =
+                new BarChart<String,Number>(xAxis1,yAxis1);
+        bc1.setTitle("Statistiques par rapport aux classes");
+        xAxis1.setLabel("Antipatrons");
+        yAxis1.setLabel("Pourcentage (%)");
+        VBox firstVbox = new VBox();
+        firstVbox.getChildren().add(bc);
+        firstVbox.setPadding(new Insets(50,50,50,50));
+        XYChart.Series series2 = new XYChart.Series();
+        series2.setName("Sans logique floue");
+        series2.getData().add(new XYChart.Data(blob, ratioBlob.get(1)));
+        series2.getData().add(new XYChart.Data(cc ,ratioCC.get(1)));
+        series2.getData().add(new XYChart.Data(sak, ratioSAK.get(1)));
+        series2.getData().add(new XYChart.Data(ilm, ratioILMW.get(1)));
+        series2.getData().add(new XYChart.Data(lm, ratioLM.get(1)));
+        series2.getData().add(new XYChart.Data(mvc, ratioMVC.get(1)));
+        VBox vBox=new VBox();
+        VBox secondVBox= new VBox();
+        secondVBox.setPadding(new Insets(50,50,50,50));
+        secondVBox.getChildren().add(bc1);
+        vBox.getChildren().addAll(firstVbox,secondVBox);
+        bc.setPrefWidth(700);
+        bc.setMinWidth(700);
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(vBox);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        vBox.setAlignment(Pos.CENTER);
+        System.out.println("nb==  "+ bddFacade.calculateNumberOfApps());
+        bc.getData().addAll(series1);
+        bc1.getData().addAll(series2);
+        //, series2, series3);
+        WorkbenchView view = new WorkbenchView();
+        view.setCenterNode(scrollPane);
+        app.setWorkbench(view);
+        app.clearGlobalActions();
 
     }
 }

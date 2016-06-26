@@ -46,6 +46,21 @@ public class CCQuery extends FuzzyQuery{
         }
     }
 
+    public HashMap<String, Integer> count()  {
+        Result result;
+        HashMap<String, Integer> res=new HashMap<>();
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (cl:Class) WHERE cl.class_complexity > "+ veryHigh +" RETURN count(cl) as class_cpt, count(distinct(cl.app_key)) as app_cpt";
+            result = graphDatabaseService.execute(query);
+            HashMap hashMap =new HashMap(result.next());
+            res.put("class_cpt",Integer.parseInt(hashMap.get("class_cpt").toString()));
+            res.put("app_cpt",Integer.parseInt(hashMap.get("app_cpt").toString()));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
+    }
+
     public ArrayList<DatasetSimpleLine> executeDataset(boolean csv, boolean details) throws CypherException, IOException {
         Result result;
         try (Transaction ignored = graphDatabaseService.beginTx()) {

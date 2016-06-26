@@ -21,14 +21,7 @@ import java.util.Map;
  * Created by Geoffrey Hecht on 14/08/15.
  */
 public class BLOBQuery extends FuzzyQuery{
-   // protected static double high_lcom = 25;
-   // protected static double veryHigh_lcom = 40;
-   /* protected static double high_noa = 8.5;
-    protected static double veryHigh_noa = 13;
-    protected static double high_nom = 14.5;
-    protected static double veryHigh_nom = 22;
-    protected static double veryLow_camc =2;
-    protected static double low_camc = 3;*/
+
     protected static double high_noa = 13.5;
     protected static double veryHigh_noa = 24;
     protected static double high_nom = 19.5;
@@ -57,6 +50,24 @@ public class BLOBQuery extends FuzzyQuery{
             result = graphDatabaseService.execute(query);
             queryEngine.resultToCSV(result,"_BLOB_NO_FUZZY.csv");
         }
+    }
+
+    public HashMap<String, Integer> count()  {
+        Result result;
+        HashMap<String, Integer> res = new HashMap<>();
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (cl:Class) WHERE cl.cohesion_among_methods_of_class <" + veryLow_camc + " AND cl.number_of_methods > "
+                    + veryHigh_nom + " AND cl.number_of_attributes > "
+                    + veryHigh_noa + " RETURN count(cl) as class_cpt, count(distinct(cl.app_key)) as app_cpt";
+
+            result = graphDatabaseService.execute(query);
+            HashMap hashMap =new HashMap(result.next());
+            res.put("class_cpt",Integer.parseInt(hashMap.get("class_cpt").toString()));
+            res.put("app_cpt",Integer.parseInt(hashMap.get("app_cpt").toString()));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
     }
     public ArrayList<DatasetSimpleLine> executeDatatset(boolean csv, boolean details) throws CypherException, IOException {
         Result result;

@@ -660,3 +660,11 @@
     -fx-text-color: red;
 
 }
+
+.red-radio-button .dot {
+  -fx-mark-highlight-color: red ;
+  -fx-mark-color: red ;
+}
+
+.default-color0.chart-bar { -fx-bar-fill: rgb(255,194,155);}
+.default-color1.chart-bar { -fx-bar-fill: -fx-bit-lighter-color; }

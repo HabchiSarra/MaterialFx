@@ -32,10 +32,16 @@ public class BDDFacade {
 
     protected QueryEngine queryEngine;
     protected GraphDatabaseService graphDatabaseService;
+    int numberOfApps;
+    int numberOfClasses;
+    int numberOfMethods;
 
     public BDDFacade(QueryEngine queryEngine) {
         this.queryEngine = queryEngine;
         graphDatabaseService = queryEngine.getGraphDatabaseService();
+        numberOfApps =0;
+        numberOfClasses =0;
+        numberOfMethods=0;
     }
 
     public ArrayList<PaprikaApp> getApps(){
@@ -478,7 +484,8 @@ public class BDDFacade {
                     break;
                 }
                 case "VIPER":{
-
+                    VIPERQuery viperQuery= VIPERQuery.createVIPERQuery(queryEngine);
+                    lines = viperQuery.executeDataset(csv,true);
                     break;
                 }
                 default: break;
@@ -533,5 +540,151 @@ public class BDDFacade {
         return lines;
     }
 
+/*
+    public double calculateRatio(String antipattern, Criteria criteria){
 
+        switch (antipattern){
+            case "BLOB":{
+
+            }
+        }
+    }
+*/
+    public ArrayList<Double> calculateRatioBLOB(){
+        BLOBQuery blobQuery = BLOBQuery.createBLOBQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = blobQuery.count();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        return doublesArrayList;
+
+    }
+    public ArrayList<Double> calculateRatioCC(){
+        CCQuery ccQuery = CCQuery.createCCQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = ccQuery.count();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+
+                doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+                doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        return doublesArrayList;
+
+    }
+    public ArrayList<Double> calculateRatioSAK(){
+        SAKQuery blobQuery = SAKQuery.createSAKQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = blobQuery.count();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        return doublesArrayList;
+
+    }
+    public ArrayList<Double> calculateRatioILMW(){
+        ILMWQuery blobQuery = ILMWQuery.createILMWQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = blobQuery.count();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        return doublesArrayList;
+
+    }
+    public ArrayList<Double> calculateRatioMVC(){
+        MVCQuery blobQuery = MVCQuery.createMVCQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = blobQuery.count();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        return doublesArrayList;
+
+    }
+    public ArrayList<Double> calculateRatioLM(){
+        LMQuery blobQuery = LMQuery.createLMQuery(queryEngine);
+        int nbCl=0, nbApp =0,nbMeth=0;
+        HashMap<String,Integer> hashMap = blobQuery.count();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+        nbMeth =hashMap.get("method_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        doublesArrayList.add(((double) nbMeth/(double)calculateNumberOfMethods())*100);
+        return doublesArrayList;
+
+    }
+    public ArrayList<Double> calculateRatioCSC(){
+        CSCQuery blobQuery = CSCQuery.createCSCQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = blobQuery.count();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbApp = hashMap.get("app_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        return doublesArrayList;
+    }
+    public ArrayList<Double> calculateRatioVIPER(){
+        VIPERQuery blobQuery = VIPERQuery.createVIPERQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = blobQuery.count();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbApp = hashMap.get("app_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        return doublesArrayList;
+    }
+    public int calculateNumberOfApps(){
+        String query ="Match (al:App) return count(al) as cpt";
+        int nb=1;
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            Result result =graphDatabaseService.execute(query);
+            if(result!=null){
+                HashMap hashMap = new HashMap(result.next());
+                nb= Integer.parseInt(hashMap.get("cpt").toString());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return nb;
+    }
+
+    public int calculateNumberOfClasses(){
+        String query ="Match (al:Class) return count(al) as cpt";
+        int nb=1;
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            Result result =graphDatabaseService.execute(query);
+            if(result!=null){
+                HashMap hashMap = new HashMap(result.next());
+                nb= Integer.parseInt(hashMap.get("cpt").toString());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return nb;
+    }
+
+    public int calculateNumberOfMethods(){
+        String query ="Match (al:Method) return count(al) as cpt";
+        int nb=1;
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            Result result =graphDatabaseService.execute(query);
+            if(result!=null){
+                HashMap hashMap = new HashMap(result.next());
+                nb= Integer.parseInt(hashMap.get("cpt").toString());
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return nb;
+    }
 }

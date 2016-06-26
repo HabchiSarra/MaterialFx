@@ -15,7 +15,7 @@ public class SimpleMediaListCell<T extends Media> extends MediaListCell<T> {
     public SimpleMediaListCell() {
         //imageView = new RoundImageView();
         //setLeftContent(imageView);
-       // getStyleClass().add("simple-media-cell");
+        getStyleClass().add("simple-media-cell");
         itemProperty().addListener(e -> {
             titleProperty().unbind();
             descriptionProperty().unbind();
@@ -32,7 +32,7 @@ public class SimpleMediaListCell<T extends Media> extends MediaListCell<T> {
         MediaList<Media> lv = (MediaList) getListView();
         //  ListView lv = getListView();
         int index = getIndex();
-        //    MultipleSelectionModel sm = lv.getSelectionModel();
+           MultipleSelectionModel sm = lv.getSelectionModel();
           lv.getSelectionModel().clearAndSelect(index);
        // System.out.println(lv.getItems().get(index).titleProperty().getValue());
         SimpleViewAppDemo1.showChooseAntipatterns(lv.getItems().get(index).titleProperty().getValue());

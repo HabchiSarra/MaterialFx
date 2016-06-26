@@ -39,13 +39,28 @@ public class CSCQuery extends Query {
         }
     }
 
+    public HashMap<String, Integer> count(){
+        Result result;
+        HashMap<String, Integer> res = new HashMap<>();
+        try (Transaction ignored = graphDatabaseService.beginTx()) {
+            String query = "MATCH (cl:Class) WHERE (cl:Class)-[:CLASS_OWNS_METHOD]->(:Method)-[:CALLS]->(:ExternalMethod{name:'sendSynchronousRequest:returningResponse:error:'})  RETURN count(distinct(cl.app_key)) as app_cpt";
+
+            result = graphDatabaseService.execute(query);
+            HashMap hashMap =new HashMap(result.next());
+            res.put("app_cpt",Integer.parseInt(hashMap.get("app_cpt").toString()));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return res;
+    }
+
     public ArrayList<DatasetSimpleLine> executeDataset(boolean csv, boolean details) throws CypherException, IOException {
         try (Transaction ignored = graphDatabaseService.beginTx()) {
-            String query = "MATCH (cl:Class) WHERE (cl:Class)-[:CLASS_OWNS_METHOD]->(:Method)-[:CALLS]->(:ExternalMethod{name:'sendSynchronousRequest:returningResponse:error:'}) RETURN cl.app_key as app_key";
+            String query = "MATCH (m:Method)-[:CALLS]->(:ExternalMethod{name:'sendSynchronousRequest:returningResponse:error:'}) RETURN m.app_key as app_key";
             if(details){
-                query += ",cl.name as full_name";
+                query += ",m.full_name as full_name";
             }else{
-                query += ",count(cl) as CSC";
+                query += ",count(m) as CSC";
             }
             Result result = graphDatabaseService.execute(query);
             ArrayList<HashMap<String, Object>> list =new ArrayList<>();
@@ -59,7 +74,9 @@ public class CSCQuery extends Query {
                 while(result.hasNext()) {
                     HashMap res = new HashMap(result.next());
                     list.add(res);
-                    lines.add(new DatasetSimpleLine(res.get("full_name").toString(),"", res.get("app_key").toString()));
+                    tabString = res.get("full_name").toString().split("#");
+                    classname = tabString[1];
+                    lines.add(new DatasetSimpleLine(tabString[0],classname, res.get("app_key").toString()));
                 }
             }
 
@@ -72,11 +89,11 @@ public class CSCQuery extends Query {
 
     public ArrayList<SimpleLine> executeApp(String appKey, boolean details) throws CypherException, IOException {
         try (Transaction ignored = graphDatabaseService.beginTx()) {
-            String query = "MATCH (cl:Class) WHERE cl.app_key='"+appKey+"' AND (cl:Class)-[:CLASS_OWNS_METHOD]->(:Method)-[:CALLS]->(m:ExternalMethod{name:'sendSynchronousRequest:returningResponse:error:'}) RETURN cl.app_key as app_key, m.name as name";
+            String query = "MATCH (m:Method) WHERE m.app_key='"+appKey+"' AND (m:Method)-[:CALLS]->(:ExternalMethod{name:'sendSynchronousRequest:returningResponse:error:'}) RETURN m.app_key as app_key, m.name as name";
             if(details){
-                query += ",cl.name as full_name";
+                query += ",m.full_name as full_name";
             }else{
-                query += ",count(cl) as CSC";
+                query += ",count(m) as CSC";
             }
             Result result = graphDatabaseService.execute(query);
             String classname;
@@ -85,7 +102,9 @@ public class CSCQuery extends Query {
             if(result !=null){
                 while(result.hasNext()) {
                     HashMap res = new HashMap(result.next());
-                    lines.add(new SimpleLine(res.get("name").toString(),res.get("full_name").toString()));
+                    tabString = res.get("full_name").toString().split("#");
+                    classname = tabString[1];
+                    lines.add(new SimpleLine(res.get("name").toString(),classname));
                 }
             }
             return lines;
