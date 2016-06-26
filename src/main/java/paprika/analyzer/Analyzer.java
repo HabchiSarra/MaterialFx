@@ -99,7 +99,7 @@ public class Analyzer {
         //graphsGenerator.printGraph();
         //modelGenerator.printModel();
         MetricsCalculator.calculateAppMetrics(modelGenerator.getApp());
-        ModelToGraph modelToGraph = new ModelToGraph("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        ModelToGraph modelToGraph = new ModelToGraph("C:\\Users\\Midou_\\Desktop\\BDD-test");
         modelToGraph.insertApp(modelGenerator.getApp());
 
 
@@ -107,7 +107,7 @@ public class Analyzer {
 
 
     public void identifyLMFuzzy(){
-        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Midou_\\Desktop\\BDD-test");
         try{
             LMQuery.createLMQuery(queryEngine).executeFuzzy(true);
         }catch (Exception ioe){
@@ -117,7 +117,7 @@ public class Analyzer {
 
     }
     public void identifyBLOB(){
-        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Midou_\\Desktop\\BDD-test");
         try{
             BLOBQuery.createBLOBQuery(queryEngine).execute(true);
         }catch (Exception ioe){
@@ -128,7 +128,7 @@ public class Analyzer {
     }
 
     public void identifyBLOBFuzzy(){
-        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Midou_\\Desktop\\BDD-test");
         try{
             BLOBQuery.createBLOBQuery(queryEngine).executeFuzzy(true);
         }catch (Exception ioe){
@@ -139,7 +139,7 @@ public class Analyzer {
     }
 
     public void identifyLM(){
-        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Midou_\\Desktop\\BDD-test");
         try{
             LMQuery.createLMQuery(queryEngine).execute(true);
         }catch (Exception ioe){
@@ -150,7 +150,7 @@ public class Analyzer {
     }
 
     public void identifySAK(){
-        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Midou_\\Desktop\\BDD-test");
         try{
             SAKQuery.createSAKQuery(queryEngine).execute(true);
         }catch (Exception ioe){
@@ -179,7 +179,7 @@ public class Analyzer {
 
 
     public void identifyCC(){
-        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Midou_\\Desktop\\BDD-test");
         try{
             CCQuery.createCCQuery(queryEngine).execute(true);
         }catch (Exception ioe){
@@ -190,7 +190,7 @@ public class Analyzer {
     }
 
     public void identifyMVCFuzzy(){
-        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Midou_\\Desktop\\BDD-test");
         try{
             MVCQuery.createMVCQuery(queryEngine).executeFuzzy(true);
         }catch (Exception ioe){
@@ -201,7 +201,7 @@ public class Analyzer {
     }
 
     public void computeStatistics(){
-        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        QueryEngine queryEngine =new QueryEngine("C:\\Users\\Midou_\\Desktop\\BDD-test");
         QuartileCalculator quartileCalculator = new QuartileCalculator(queryEngine);
         try {
             quartileCalculator.calculateClassComplexityQuartile();

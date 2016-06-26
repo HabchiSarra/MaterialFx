@@ -16,7 +16,12 @@ import com.guigarage.sdk.overlay.Overlay;
 import com.guigarage.sdk.table.MediaTable;
 import com.guigarage.sdk.util.*;
 import com.jfoenix.controls.JFXCheckBox;
+import com.jfoenix.controls.JFXProgressBar;
 import com.jfoenix.controls.JFXRadioButton;
+import com.sun.javafx.font.freetype.HBGlyphLayout;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -43,6 +48,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
+import javafx.util.Duration;
 import org.neo4j.graphdb.*;
 import paprika.analyzer.Analyzer;
 import paprika.model.PaprikaApp;
@@ -66,13 +72,13 @@ public class SimpleViewAppDemo1 {
     public static void main(String... args) {
         app = new Application();
         app.setTitle("PAPRIKA iOS");
-        app.setBaseColor(Color.rgb(30,160,118));
-      //  app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_DOWN, () -> app.animateToolbarToLargeVersion()));
-      //  app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_UP, () -> app.animateToolbarToSmallVersion()));
-        selectedTitle=null;
+        app.setBaseColor(Color.rgb(30, 160, 118));
+        //  app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_DOWN, () -> app.animateToolbarToLargeVersion()));
+        //  app.addToolbarItem(new Action(FontAwesomeIcons.VOLUMNE_UP, () -> app.animateToolbarToSmallVersion()));
+        selectedTitle = null;
         paprikaApps = null;
         modified = false;
-        queryEngine = new QueryEngine("C:\\Users\\Sarra\\IdeaProjects\\ObjCParser\\BDD-test");
+        queryEngine = new QueryEngine("C:\\Users\\Midou_\\Desktop\\BDD-test");
         bddFacade = new BDDFacade(queryEngine);
         app.setToolbarBackgroundImage(SimpleViewAppDemo1.class.getResource("toolbar-background.png").toExternalForm());
         app.addMenuEntry(new Action(FontAwesomeIcons.PLUS, "Ajouter une application", () -> showAddApp(app)));
@@ -129,10 +135,10 @@ public class SimpleViewAppDemo1 {
         app.show();
     }
 
-    private static void showAddApp(Application app){
+    private static void showAddApp(Application app) {
         FormLayout formLayout = new FormLayout();
-        formLayout.addHeader("Le chemin de l'application","Introduire le chemin du dossier contenant les fichiers de l'application");
-        TextField textField= (TextField) formLayout.addSpecialField("Chemin", EditorType.TEXTFIELD);
+        formLayout.addHeader("Le chemin de l'application", "Introduire le chemin du dossier contenant les fichiers de l'application");
+        TextField textField = (TextField) formLayout.addSpecialField("Chemin", EditorType.TEXTFIELD);
 
         Action action = new Action("Choisir");
         action.setCallback(new Callback() {
@@ -140,49 +146,65 @@ public class SimpleViewAppDemo1 {
             public void call() {
                 DirectoryChooser directoryChooser = new DirectoryChooser();
                 directoryChooser.setTitle("Sélectionner le dossier de l'application");
-                File f =directoryChooser.showDialog(app.getStage());
+                File f = directoryChooser.showDialog(app.getStage());
                 textField.setText(f.getAbsolutePath());
 
             }
         });
         formLayout.addActions(action);
         formLayout.addHeader("Les informations");
-        TextField name= (TextField) formLayout.addSpecialField("Nom de l'application", EditorType.TEXTFIELD);
-        TextField key= (TextField) formLayout.addSpecialField("Clé", EditorType.TEXTFIELD);
-        ComboBox category= (ComboBox) formLayout.addSpecialField("Catégorie", EditorType.COMBOBOX);
+        TextField name = (TextField) formLayout.addSpecialField("Nom de l'application", EditorType.TEXTFIELD);
+        TextField key = (TextField) formLayout.addSpecialField("Clé", EditorType.TEXTFIELD);
+        ComboBox category = (ComboBox) formLayout.addSpecialField("Catégorie", EditorType.COMBOBOX);
         Action ajouter = new Action("Ajouter");
         ajouter.setCallback(() -> {
-            String path =textField.getText().toString();
+            String path = textField.getText().toString();
             String appName = name.getText().toString();
             String appKey = key.getText().toString();
             String categoryName = category.getValue().toString();
-            final Cursor oldCursor =app.getScene().getCursor();
+            final Cursor oldCursor = app.getScene().getCursor();
             app.getScene().setCursor(Cursor.WAIT);
-            WorkbenchView view= new WorkbenchView();
+            WorkbenchView view = new WorkbenchView();
             VBox vBox = new VBox();
-            VBox hBox=new VBox();
-            Label label = new Label("Traitment en cours ...");
+            VBox hBox = new VBox();
+            Label label = new Label("Traitment en cours");
             label.setStyle("-fx-font-size: 28;");
             hBox.getChildren().add(label);
 
-            SimpleImageView simpleImageView=new SimpleImageView();
+            SimpleImageView simpleImageView = new SimpleImageView();
             simpleImageView.setImage(SimpleViewAppDemo1.class.getResource("done.png").toExternalForm());
-            simpleImageView.setMaxSize(100,80);
+            simpleImageView.setMaxSize(100, 80);
 
-
+            JFXProgressBar jfxBar = new JFXProgressBar();
+            jfxBar.setPrefWidth(500);
+            JFXProgressBar jfxBarInf = new JFXProgressBar();
+            jfxBarInf.setPrefWidth(500);
+            jfxBarInf.setProgress(-1.0f);
+            Timeline timeline;
+            JFXProgressBar bar = new JFXProgressBar();
+            ;
+            timeline = new Timeline(
+                    new KeyFrame(Duration.ZERO, new KeyValue(bar.progressProperty(), 0), new KeyValue(jfxBar.progressProperty(), 0)),
+                    new KeyFrame(Duration.seconds(2), new KeyValue(bar.progressProperty(), 1), new KeyValue(jfxBar.progressProperty(), 1)));
+            timeline.setCycleCount(Timeline.INDEFINITE);
+            timeline.play();
             Button button = new Button("Analyser");
             //hBox.getChildren().add(button);
-            hBox.setPadding(new Insets(0,0,30,0));
+            hBox.setPadding(new Insets(0, 0, 30, 0));
             hBox.setSpacing(10);
-
             hBox.setAlignment(Pos.CENTER);
-            vBox.getChildren().addAll(hBox);//,list);
-            vBox.setPadding(new Insets(0,0,0,0));
+            HBox hBox1 = new HBox();
+            hBox1.setAlignment(Pos.CENTER);
+            hBox1.setSpacing(10);
+            hBox1.getChildren().addAll(jfxBar);
+            vBox.getChildren().addAll(hBox, hBox1);
+            //,list);
+            vBox.setPadding(new Insets(0, 0, 0, 0));
             // hBox.translateXProperty().bind(vBox.widthProperty().subtract(hBox.widthProperty()).divide(2));
             vBox.setAlignment(Pos.CENTER);
             //vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
             view.setCenterNode(vBox);
-            view.setPadding(new Insets(0,0,0,0));
+            view.setPadding(new Insets(0, 0, 0, 0));
             button.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
@@ -191,7 +213,6 @@ public class SimpleViewAppDemo1 {
             });
             app.setWorkbench(view);
             app.clearGlobalActions();
-
             final Service<Void> calculateService = new Service<Void>() {
 
                 @Override
@@ -200,9 +221,12 @@ public class SimpleViewAppDemo1 {
 
                         @Override
                         protected Void call() throws Exception {
+                            final int maxIterations = 1000000;
+                            for (int iterations = 0; iterations < maxIterations; iterations++) {
+                                System.out.println(iterations);
+                            }
 
-
-                           bddFacade.addApp(path,appName,categoryName,appKey);
+                            //bddFacade.addApp(path,appName,categoryName,appKey);
                             return null;
                         }
                     };
@@ -211,43 +235,36 @@ public class SimpleViewAppDemo1 {
             calculateService.stateProperty().addListener(new ChangeListener<Worker.State>() {
 
                 @Override
-                public void changed(ObservableValue<? extends Worker.State> observableValue, Worker.State oldValue, Worker.State newValue)
-                {
+                public void changed(ObservableValue<? extends Worker.State> observableValue, Worker.State oldValue, Worker.State newValue) {
                     switch (newValue) {
                         case FAILED:
                             System.out.print("Error");
-
                         case CANCELLED:
                         case SUCCEEDED:
                             app.getScene().setCursor(oldCursor);
                             System.out.println("fin du traitememt avec succes");
-                            WorkbenchView view= new WorkbenchView();
+                            WorkbenchView view = new WorkbenchView();
                             VBox vBox = new VBox();
-                            VBox hBox=new VBox();
+                            VBox hBox = new VBox();
                             Label label = new Label("Application ajoutée avec succès");
                             label.setStyle("-fx-font-size: 24;");
-
-
-                            SimpleImageView simpleImageView=new SimpleImageView();
+                            SimpleImageView simpleImageView = new SimpleImageView();
                             simpleImageView.setImage(SimpleViewAppDemo1.class.getResource("done.png").toExternalForm());
-                            simpleImageView.setMaxSize(80,60);
-
+                            simpleImageView.setMaxSize(80, 60);
                             hBox.getChildren().add(simpleImageView);
                             hBox.getChildren().add(label);
                             Button button = new Button("Analyser");
-
                             hBox.getChildren().add(button);
-                            hBox.setPadding(new Insets(0,0,30,0));
+                            hBox.setPadding(new Insets(0, 0, 30, 0));
                             hBox.setSpacing(20);
-
                             hBox.setAlignment(Pos.CENTER);
                             vBox.getChildren().addAll(hBox);//,list);
-                            vBox.setPadding(new Insets(0,0,0,0));
+                            vBox.setPadding(new Insets(0, 0, 0, 0));
                             // hBox.translateXProperty().bind(vBox.widthProperty().subtract(hBox.widthProperty()).divide(2));
                             vBox.setAlignment(Pos.CENTER);
                             //vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
                             view.setCenterNode(vBox);
-                            view.setPadding(new Insets(0,0,0,0));
+                            view.setPadding(new Insets(0, 0, 0, 0));
                             button.setOnAction(new EventHandler<ActionEvent>() {
                                 @Override
                                 public void handle(ActionEvent event) {
@@ -265,7 +282,7 @@ public class SimpleViewAppDemo1 {
 
 
             //bddFacade.addApp(path,appName,categoryName,appKey);
-            modified=true;
+            modified = true;
         });
 
         //   Action annuler = new Action("Annuler", ()->addApplication(app));
@@ -284,7 +301,7 @@ public class SimpleViewAppDemo1 {
     }
 
 
-    public static void showChooseAntipatterns(String appKey){
+    public static void showChooseAntipatterns(String appKey) {
         FormLayout formLayout = new FormLayout();
         formLayout.addHeader("Les patrons / anti-patrons");
         final ToggleGroup group = new ToggleGroup();
@@ -308,7 +325,7 @@ public class SimpleViewAppDemo1 {
         });
         rb1.setToggleGroup(group);
         rb1.setSelected(true);
-        rb1.setPadding(new Insets(10,10,10,20));
+        rb1.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb2 = new JFXRadioButton("Long Method");
         rb2.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -326,7 +343,7 @@ public class SimpleViewAppDemo1 {
 
         rb2.setUserData("Long Method");
         rb2.setToggleGroup(group);
-        rb2.setPadding(new Insets(10,10,10,20));
+        rb2.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb3 = new JFXRadioButton("Swiss Army Knife");
         rb3.setUserData("Swiss Army Knife");
         rb3.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -343,7 +360,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb3.setToggleGroup(group);
-        rb3.setPadding(new Insets(10,10,10,20));
+        rb3.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb4 = new JFXRadioButton("Complex Class");
         rb4.setUserData("Complex Class");
         rb4.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -360,7 +377,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb4.setToggleGroup(group);
-        rb4.setPadding(new Insets(10,10,10,20));
+        rb4.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb5 = new JFXRadioButton("Ignoring Low-Memory Warnings");
         rb5.setUserData("Ignoring Low-Memory Warnings");
         rb5.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -377,7 +394,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb5.setToggleGroup(group);
-        rb5.setPadding(new Insets(10,10,10,20));
+        rb5.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb6 = new JFXRadioButton("Massive View Controller");
         rb6.setUserData("Massive View Controller");
         rb6.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -394,7 +411,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb6.setToggleGroup(group);
-        rb6.setPadding(new Insets(10,10,10,20));
+        rb6.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb7 = new JFXRadioButton("Blocking the Main-Thread");
         rb7.setUserData("Blocking the Main-Thread");
         rb7.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -411,7 +428,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb7.setToggleGroup(group);
-        rb7.setPadding(new Insets(10,10,10,20));
+        rb7.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb8 = new JFXRadioButton("VIPER");
         rb8.setUserData("VIPER");
         rb8.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -428,17 +445,17 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb8.setToggleGroup(group);
-        rb8.setPadding(new Insets(10,10,40,20));
+        rb8.setPadding(new Insets(10, 10, 40, 20));
 
         VBox vBox = new VBox();
      /*   Label label = new Label("Les patrons et anti-patrons");
         label.setPadding(new Insets(40,10,40,50));*/
         Label lblStyle = LabelBuilder.create().text("Le patron / anti-patron à détecter").styleClass("labelStyleClass").build();
         lblStyle.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-    //    root.getChildren().add(lblStyle);
-        lblStyle.setPadding(new Insets(40,10,20,0));
+        //    root.getChildren().add(lblStyle);
+        lblStyle.setPadding(new Insets(40, 10, 20, 0));
 
-        vBox.setPadding(new Insets(10,10,10,100));
+        vBox.setPadding(new Insets(10, 10, 10, 100));
         vBox.getChildren().addAll(lblStyle);
         vBox.getChildren().addAll(rb1);
         vBox.getChildren().addAll(rb2);
@@ -452,12 +469,12 @@ public class SimpleViewAppDemo1 {
 
         vBox.getChildren().addAll(checkBox);
 
-        Button button=new Button("Analyser");
-       HBox hBox = new HBox();
-        hBox.setPadding(new Insets(30,10,10,200));
+        Button button = new Button("Analyser");
+        HBox hBox = new HBox();
+        hBox.setPadding(new Insets(30, 10, 10, 200));
         hBox.getChildren().add(button);
 
-    //    button.setPadding(new Insets(20,10,10,200));
+        //    button.setPadding(new Insets(20,10,10,200));
      /*   button.setMaxWidth(100);
         button.setPrefWidth(100);
         button.setMinWidth(100);*/
@@ -468,7 +485,7 @@ public class SimpleViewAppDemo1 {
                 //Object toggle=group.getSelectedToggle().getUserData();
                 String antipatttern = group.getSelectedToggle().getUserData().toString();
                 Boolean fuzzy = checkBox.isSelected();
-                showAnalysisResults(appKey,antipatttern,fuzzy);
+                showAnalysisResults(appKey, antipatttern, fuzzy);
             }
         });
 
@@ -509,55 +526,55 @@ public class SimpleViewAppDemo1 {
             app.clearGlobalActions();
         } else {
             if (!fuzzy) {
-            ArrayList<SimpleLine> lines;
-            lines = bddFacade.detectAntipattern(antipattern, appKey);
+                ArrayList<SimpleLine> lines;
+                lines = bddFacade.detectAntipattern(antipattern, appKey);
 
-            if (lines.size() != 0) {
-                if (lines.get(0).getClassName().equals("")) {
+                if (lines.size() != 0) {
+                    if (lines.get(0).getClassName().equals("")) {
 
+                        showOneColumnTable(lines, antipattern, appKey);
+
+                    } else {
+                        showTwoColumnsTable(lines, antipattern, appKey);
+
+                    }
+
+
+                } else {
                     showOneColumnTable(lines, antipattern, appKey);
+                }
+            } else {
+                ArrayList<FuzzyLine> lines;
+                lines = bddFacade.detectAntipatternFuzzy(antipattern, appKey);
+                if (lines.size() != 0) {
+                    if (lines.get(0).getClassName().equals("")) {
+
+                        showFuzzyOneColumnTable(lines, antipattern, appKey);
+
+                    } else {
+                        showFuzzyTwoColumnsTable(lines, antipattern, appKey);
+
+                    }
+
 
                 } else {
-                    showTwoColumnsTable(lines, antipattern, appKey);
-
+                    Label label = LabelBuilder.create().text("Aucune instance de " + antipattern + " dans " + appKey + " détectée.").styleClass("labelStyleClass").build();
+                    label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+                    WorkbenchView view = new WorkbenchView();
+                    VBox vBox = new VBox();
+                    vBox.getChildren().add(label);
+                    vBox.setAlignment(Pos.CENTER);
+                    //   label.setPadding(new Insets(0,0,0,250));
+                    view.setCenterNode(vBox);
+                    vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+                    app.setWorkbench(view);
+                    app.clearGlobalActions();
                 }
-
-
-            } else {
-                showOneColumnTable(lines, antipattern, appKey);
-            }
-        } else {
-            ArrayList<FuzzyLine> lines;
-            lines = bddFacade.detectAntipatternFuzzy(antipattern, appKey);
-            if (lines.size() != 0) {
-                if (lines.get(0).getClassName().equals("")) {
-
-                    showFuzzyOneColumnTable(lines, antipattern, appKey);
-
-                } else {
-                    showFuzzyTwoColumnsTable(lines, antipattern, appKey);
-
-                }
-
-
-            } else {
-                Label label = LabelBuilder.create().text("Aucune instance de " + antipattern + " dans " + appKey + " détectée.").styleClass("labelStyleClass").build();
-                label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-                WorkbenchView view = new WorkbenchView();
-                VBox vBox = new VBox();
-                vBox.getChildren().add(label);
-                vBox.setAlignment(Pos.CENTER);
-                //   label.setPadding(new Insets(0,0,0,250));
-                view.setCenterNode(vBox);
-                vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
-                app.setWorkbench(view);
-                app.clearGlobalActions();
             }
         }
     }
-    }
 
-    private static void showTwoColumnsTable(ArrayList<SimpleLine> lines, String antipattern,String appKey){
+    private static void showTwoColumnsTable(ArrayList<SimpleLine> lines, String antipattern, String appKey) {
         TableView<SimpleLine> table = new TableView<SimpleLine>();
         table.setEditable(false);
         TableColumn methodCol = new TableColumn("Méthode");
@@ -568,24 +585,24 @@ public class SimpleViewAppDemo1 {
         table.setMinWidth(800);
         table.setMaxWidth(1000);
         table.setPrefWidth(820);
-        ScrollPane scrollPane=new ScrollPane();
-        scrollPane.setPadding(new Insets(20,0,0,0));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPadding(new Insets(20, 0, 0, 0));
 
         ObservableList<SimpleLine> observableList = FXCollections.observableList(lines);
         methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
         classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("className"));
-       // applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
+        // applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
 
         table.setItems(observableList);
 
         table.getColumns().addAll(methodCol, classCol);
         //System.out.println("pss"+table.getItems());
-        VBox vBox=new VBox();
-        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées dans "+appKey).styleClass("labelStyleClass").build();
+        VBox vBox = new VBox();
+        Label label = LabelBuilder.create().text("Les instances de " + antipattern + " détectées dans " + appKey).styleClass("labelStyleClass").build();
         label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-        label.setPadding(new Insets(0,0,25,0));
+        label.setPadding(new Insets(0, 0, 25, 0));
         //  table.setPadding(new Insets(50,20,20,20));
-        vBox.getChildren().addAll(label,table);
+        vBox.getChildren().addAll(label, table);
         vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
         vBox.setAlignment(Pos.CENTER);
         vBox.setMinWidth(800);
@@ -602,7 +619,8 @@ public class SimpleViewAppDemo1 {
 
 
     }
-    private static void showFuzzyOneColumnTable(ArrayList<FuzzyLine> lines, String antipattern,String appKey){
+
+    private static void showFuzzyOneColumnTable(ArrayList<FuzzyLine> lines, String antipattern, String appKey) {
         TableView<FuzzyLine> table = new TableView<>();
         table.setEditable(false);
         TableColumn methodCol = new TableColumn("Classe");
@@ -614,8 +632,8 @@ public class SimpleViewAppDemo1 {
 
         table.setMaxWidth(500);
         table.setPrefWidth(500);
-        ScrollPane scrollPane=new ScrollPane();
-        scrollPane.setPadding(new Insets(50,0,0,0));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPadding(new Insets(50, 0, 0, 0));
 
         ObservableList<FuzzyLine> observableList = FXCollections.observableList(lines);
         methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
@@ -627,12 +645,12 @@ public class SimpleViewAppDemo1 {
         table.getColumns().addAll(methodCol, classCol);
         table.getSortOrder().add(classCol);
         //System.out.println("pss"+table.getItems());
-        VBox vBox=new VBox();
-        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées dans "+appKey).styleClass("labelStyleClass").build();
+        VBox vBox = new VBox();
+        Label label = LabelBuilder.create().text("Les instances de " + antipattern + " détectées dans " + appKey).styleClass("labelStyleClass").build();
         label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-        label.setPadding(new Insets(0,0,25,0));
+        label.setPadding(new Insets(0, 0, 25, 0));
         //  table.setPadding(new Insets(50,20,20,20));
-        vBox.getChildren().addAll(label,table);
+        vBox.getChildren().addAll(label, table);
         vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
         vBox.setAlignment(Pos.CENTER);
         vBox.setMinWidth(800);
@@ -651,75 +669,11 @@ public class SimpleViewAppDemo1 {
     }
 
 
-
-    private static void showOneColumnTable(ArrayList<SimpleLine> lines, String antipattern, String appKey){
-            if(lines.size()!=0){
+    private static void showOneColumnTable(ArrayList<SimpleLine> lines, String antipattern, String appKey) {
+        if (lines.size() != 0) {
             TableView<SimpleLine> table = new TableView<SimpleLine>();
             table.setEditable(false);
             TableColumn methodCol = new TableColumn("Classe");
-            methodCol.setPrefWidth(380);
-            //  TableColumn classCol = new TableColumn("Classe");
-            // classCol.setMinWidth(80);
-         //   TableColumn applicationCol = new TableColumn("Application");
-         //   applicationCol.setMinWidth(80);
-            table.getStyleClass().add("my-table");
-            table.setMinWidth(400);
-            table.setMaxWidth(400);
-            table.setPrefWidth(400);
-            ScrollPane scrollPane=new ScrollPane();
-            scrollPane.setPadding(new Insets(20,0,0,0));
-
-            ObservableList<SimpleLine> observableList = FXCollections.observableList(lines);
-            methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
-            //classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
-         //   applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
-
-            table.setItems(observableList);
-
-            table.getColumns().addAll(methodCol);
-            //System.out.println("pss"+table.getItems());
-
-            VBox vBox=new VBox();
-            Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées dans "+appKey).styleClass("labelStyleClass").build();
-            label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-            label.setPadding(new Insets(0,0,20,0));
-            vBox.getChildren().addAll(label,table);
-            vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
-            vBox.setAlignment(Pos.CENTER);
-            vBox.setMinWidth(400);
-            vBox.setMaxWidth(900);
-            vBox.setPrefWidth(900);
-
-            scrollPane.setContent(vBox);
-
-            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-            scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-            WorkbenchView view = new WorkbenchView();
-            view.setCenterNode(scrollPane);
-            app.setWorkbench(view);
-            app.clearGlobalActions();
-        }else{
-                Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+" dans "+appKey+" détectée.").styleClass("labelStyleClass").build();
-                label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-                WorkbenchView view = new WorkbenchView();
-                VBox vBox=new VBox();
-                vBox.getChildren().add(label);
-                vBox.setAlignment(Pos.CENTER);
-             //   label.setPadding(new Insets(0,0,0,250));
-                view.setCenterNode(vBox);
-                vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
-                app.setWorkbench(view);
-                app.clearGlobalActions();
-            }
-
-
-    }
-
-    private static void showOneColumnDataset(ArrayList<DatasetSimpleLine> lines, String antipattern){
-        if(lines.size()!=0){
-            TableView<DatasetSimpleLine> table = new TableView<DatasetSimpleLine>();
-            table.setEditable(false);
-            TableColumn methodCol = new TableColumn("Application");
             methodCol.setPrefWidth(380);
             //  TableColumn classCol = new TableColumn("Classe");
             // classCol.setMinWidth(80);
@@ -729,10 +683,10 @@ public class SimpleViewAppDemo1 {
             table.setMinWidth(400);
             table.setMaxWidth(400);
             table.setPrefWidth(400);
-            ScrollPane scrollPane=new ScrollPane();
-            scrollPane.setPadding(new Insets(20,0,0,0));
+            ScrollPane scrollPane = new ScrollPane();
+            scrollPane.setPadding(new Insets(20, 0, 0, 0));
 
-            ObservableList<DatasetSimpleLine> observableList = FXCollections.observableList(lines);
+            ObservableList<SimpleLine> observableList = FXCollections.observableList(lines);
             methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
             //classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
             //   applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
@@ -742,11 +696,11 @@ public class SimpleViewAppDemo1 {
             table.getColumns().addAll(methodCol);
             //System.out.println("pss"+table.getItems());
 
-            VBox vBox=new VBox();
-            Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées").styleClass("labelStyleClass").build();
+            VBox vBox = new VBox();
+            Label label = LabelBuilder.create().text("Les instances de " + antipattern + " détectées dans " + appKey).styleClass("labelStyleClass").build();
             label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-            label.setPadding(new Insets(0,0,20,0));
-            vBox.getChildren().addAll(label,table);
+            label.setPadding(new Insets(0, 0, 20, 0));
+            vBox.getChildren().addAll(label, table);
             vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
             vBox.setAlignment(Pos.CENTER);
             vBox.setMinWidth(400);
@@ -761,11 +715,11 @@ public class SimpleViewAppDemo1 {
             view.setCenterNode(scrollPane);
             app.setWorkbench(view);
             app.clearGlobalActions();
-        }else{
-            Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+"  détectée.").styleClass("labelStyleClass").build();
+        } else {
+            Label label = LabelBuilder.create().text("Aucune instance de " + antipattern + " dans " + appKey + " détectée.").styleClass("labelStyleClass").build();
             label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
             WorkbenchView view = new WorkbenchView();
-            VBox vBox=new VBox();
+            VBox vBox = new VBox();
             vBox.getChildren().add(label);
             vBox.setAlignment(Pos.CENTER);
             //   label.setPadding(new Insets(0,0,0,250));
@@ -778,7 +732,70 @@ public class SimpleViewAppDemo1 {
 
     }
 
-    private static void showFuzzyTwoColumnsTable(ArrayList<FuzzyLine> lines, String antipattern,String appKey){
+    private static void showOneColumnDataset(ArrayList<DatasetSimpleLine> lines, String antipattern) {
+        if (lines.size() != 0) {
+            TableView<DatasetSimpleLine> table = new TableView<DatasetSimpleLine>();
+            table.setEditable(false);
+            TableColumn methodCol = new TableColumn("Application");
+            methodCol.setPrefWidth(380);
+            //  TableColumn classCol = new TableColumn("Classe");
+            // classCol.setMinWidth(80);
+            //   TableColumn applicationCol = new TableColumn("Application");
+            //   applicationCol.setMinWidth(80);
+            table.getStyleClass().add("my-table");
+            table.setMinWidth(400);
+            table.setMaxWidth(400);
+            table.setPrefWidth(400);
+            ScrollPane scrollPane = new ScrollPane();
+            scrollPane.setPadding(new Insets(20, 0, 0, 0));
+
+            ObservableList<DatasetSimpleLine> observableList = FXCollections.observableList(lines);
+            methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
+            //classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
+            //   applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("appName"));
+
+            table.setItems(observableList);
+
+            table.getColumns().addAll(methodCol);
+            //System.out.println("pss"+table.getItems());
+
+            VBox vBox = new VBox();
+            Label label = LabelBuilder.create().text("Les instances de " + antipattern + " détectées").styleClass("labelStyleClass").build();
+            label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+            label.setPadding(new Insets(0, 0, 20, 0));
+            vBox.getChildren().addAll(label, table);
+            vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
+            vBox.setAlignment(Pos.CENTER);
+            vBox.setMinWidth(400);
+            vBox.setMaxWidth(900);
+            vBox.setPrefWidth(900);
+
+            scrollPane.setContent(vBox);
+
+            scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            WorkbenchView view = new WorkbenchView();
+            view.setCenterNode(scrollPane);
+            app.setWorkbench(view);
+            app.clearGlobalActions();
+        } else {
+            Label label = LabelBuilder.create().text("Aucune instance de " + antipattern + "  détectée.").styleClass("labelStyleClass").build();
+            label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
+            WorkbenchView view = new WorkbenchView();
+            VBox vBox = new VBox();
+            vBox.getChildren().add(label);
+            vBox.setAlignment(Pos.CENTER);
+            //   label.setPadding(new Insets(0,0,0,250));
+            view.setCenterNode(vBox);
+            vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+            app.setWorkbench(view);
+            app.clearGlobalActions();
+        }
+
+
+    }
+
+    private static void showFuzzyTwoColumnsTable(ArrayList<FuzzyLine> lines, String antipattern, String appKey) {
         TableView<FuzzyLine> table = new TableView<>();
         table.setEditable(false);
         TableColumn methodCol = new TableColumn("Méthode");
@@ -792,25 +809,25 @@ public class SimpleViewAppDemo1 {
         table.setMinWidth(750);
         table.setMaxWidth(750);
         table.setPrefWidth(750);
-        ScrollPane scrollPane=new ScrollPane();
-        scrollPane.setPadding(new Insets(50,0,0,0));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPadding(new Insets(50, 0, 0, 0));
 
         ObservableList<FuzzyLine> observableList = FXCollections.observableList(lines);
         methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
         classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("probability"));
-         secCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
+        secCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
 
         table.setItems(observableList);
 
-        table.getColumns().addAll(methodCol,secCol, classCol);
+        table.getColumns().addAll(methodCol, secCol, classCol);
         table.getSortOrder().add(classCol);
         //System.out.println("pss"+table.getItems());
-        VBox vBox=new VBox();
-        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées dans "+appKey).styleClass("labelStyleClass").build();
+        VBox vBox = new VBox();
+        Label label = LabelBuilder.create().text("Les instances de " + antipattern + " détectées dans " + appKey).styleClass("labelStyleClass").build();
         label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-        label.setPadding(new Insets(0,0,25,0));
+        label.setPadding(new Insets(0, 0, 25, 0));
         //  table.setPadding(new Insets(50,20,20,20));
-        vBox.getChildren().addAll(label,table);
+        vBox.getChildren().addAll(label, table);
         vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
         vBox.setAlignment(Pos.CENTER);
         vBox.setMinWidth(800);
@@ -828,7 +845,7 @@ public class SimpleViewAppDemo1 {
 
     }
 
-    public static void showTresholds(Application app){
+    public static void showTresholds(Application app) {
         TableView<TableLine> table = new TableView<TableLine>();
         table.setEditable(false);
         TableColumn metriqueCol = new TableColumn("Métrique");
@@ -845,11 +862,11 @@ public class SimpleViewAppDemo1 {
         seuilTresHautCol.setMinWidth(190);
 
         table.getStyleClass().add("my-table");
-        ScrollPane scrollPane=new ScrollPane();
-        scrollPane.setPadding(new Insets(50,0,0,0));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPadding(new Insets(50, 0, 0, 0));
 
         //Filling the table
-        final ObservableList<TableLine> observableList= FXCollections.observableArrayList(
+        final ObservableList<TableLine> observableList = FXCollections.observableArrayList(
                 TableLine.createTableLine("Number Of Classe Lines", bddFacade.calculateNumberofClassLines()),
                 TableLine.createTableLine("Class Complexity", bddFacade.calculateClassComplexityQuartile()),
                 TableLine.createTableLine("Cyclomatic Complexity", bddFacade.calculateCyclomaticComplexityQuartile()),
@@ -869,7 +886,7 @@ public class SimpleViewAppDemo1 {
         seuilTresHautCol.setCellValueFactory(new PropertyValueFactory<TableLine, Double>("veryHigh"));
         table.setItems(observableList);
 
-        table.getColumns().addAll(metriqueCol, medianCol, q1Col, q3Col,seuilCol,seuilTresHautCol);
+        table.getColumns().addAll(metriqueCol, medianCol, q1Col, q3Col, seuilCol, seuilTresHautCol);
         //System.out.println("pss"+table.getItems());
         table.translateXProperty().bind(scrollPane.widthProperty().subtract(table.widthProperty()).divide(2));
         scrollPane.setContent(table);
@@ -880,8 +897,9 @@ public class SimpleViewAppDemo1 {
         view.setCenterNode(scrollPane);
         app.setWorkbench(view);
         app.clearGlobalActions();
-       // app.addGlobalAction(new Action(FontAwesomeIcons.INFO, () -> imageView.toggleOverlayVisibility()));
+        // app.addGlobalAction(new Action(FontAwesomeIcons.INFO, () -> imageView.toggleOverlayVisibility()));
     }
+
     private static void showImage(Application app) {
         SimpleImageView imageView = new SimpleImageView();
         imageView.setImage(SimpleViewAppDemo1.class.getResource("pic.jpg").toExternalForm());
@@ -902,33 +920,32 @@ public class SimpleViewAppDemo1 {
 
         DetailedMediaList<DetailedMedia> list = new DetailedMediaList<>();
         VBox vBox = new VBox();
-        HBox hBox=new HBox();
-        TextField textField =new TextField();
+        HBox hBox = new HBox();
+        TextField textField = new TextField();
         hBox.getChildren().add(textField);
         Button button = new Button("Rechercher");
         hBox.getChildren().add(button);
-        hBox.setPadding(new Insets(0,0,30,0));
+        hBox.setPadding(new Insets(0, 0, 30, 0));
         hBox.setSpacing(10);
         // list.getItems().add(new DefaultMedia("Test01", "Ich bin eine Beschreibung", SimpleViewAppDemo1.class.getResource("iOS-app-bw.png").toExternalForm()));
-        if(paprikaApps==null||modified)
-        {
-            paprikaApps= bddFacade.getApps();
+        if (paprikaApps == null || modified) {
+            paprikaApps = bddFacade.getApps();
         }
 
 
-        for(PaprikaApp application:paprikaApps){
-            list.getItems().add(new DetailedDefaultMedia(application.getName(),"Catégorie: "+ application.getCategory(), "Clé: "+application.getAppKey(), "Nombre de classes: "+application.getNumberOfClasses()));
+        for (PaprikaApp application : paprikaApps) {
+            list.getItems().add(new DetailedDefaultMedia(application.getName(), "Catégorie: " + application.getCategory(), "Clé: " + application.getAppKey(), "Nombre de classes: " + application.getNumberOfClasses()));
         }
 
         hBox.setAlignment(Pos.CENTER);
         list.getStyleClass().add("special-list-view");
-        vBox.getChildren().addAll(hBox,list);//,list);
-        vBox.setPadding(new Insets(0,0,0,0));
-       // hBox.translateXProperty().bind(vBox.widthProperty().subtract(hBox.widthProperty()).divide(2));
+        vBox.getChildren().addAll(hBox, list);//,list);
+        vBox.setPadding(new Insets(0, 0, 0, 0));
+        // hBox.translateXProperty().bind(vBox.widthProperty().subtract(hBox.widthProperty()).divide(2));
         vBox.setAlignment(Pos.CENTER);
         //vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
         view.setCenterNode(vBox);
-        view.setPadding(new Insets(0,0,0,0));
+        view.setPadding(new Insets(0, 0, 0, 0));
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
@@ -937,16 +954,16 @@ public class SimpleViewAppDemo1 {
         });
 
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
-            String text=newValue;
+            String text = newValue;
             ArrayList<PaprikaApp> searchList1 = new ArrayList<PaprikaApp>();
-            for(PaprikaApp application: paprikaApps){
-                if(application.getName().toLowerCase().contains(text.toLowerCase())){
+            for (PaprikaApp application : paprikaApps) {
+                if (application.getName().toLowerCase().contains(text.toLowerCase())) {
                     searchList1.add(application);
                 }
             }
             list.getItems().clear();
-            for(PaprikaApp application:searchList1){
-                list.getItems().add(new DetailedDefaultMedia(application.getName(),"Catégorie: "+ application.getCategory(), "Clé: "+application.getAppKey(), "Nombre de classes: "+application.getNumberOfClasses()));
+            for (PaprikaApp application : searchList1) {
+                list.getItems().add(new DetailedDefaultMedia(application.getName(), "Catégorie: " + application.getCategory(), "Clé: " + application.getAppKey(), "Nombre de classes: " + application.getNumberOfClasses()));
 
             }
         });
@@ -956,30 +973,28 @@ public class SimpleViewAppDemo1 {
     }
 
 
-
     private static void showSearchApp(Application app) {
         WorkbenchView view = new WorkbenchView();
-       // ArrayList<PaprikaApp> searchList;
+        // ArrayList<PaprikaApp> searchList;
         MediaList<Media> list = new MediaList<>();
         VBox vBox = new VBox();
-        HBox hBox=new HBox();
-        TextField textField=new TextField();
+        HBox hBox = new HBox();
+        TextField textField = new TextField();
         hBox.getChildren().add(textField);
         Button button = new Button("Rechercher");
         hBox.getChildren().add(button);
-        hBox.setPadding(new Insets(0,0,50,0));
+        hBox.setPadding(new Insets(0, 0, 50, 0));
         hBox.setSpacing(10);
-        if(paprikaApps==null|| modified)
-        {
-            paprikaApps= bddFacade.getApps();
+        if (paprikaApps == null || modified) {
+            paprikaApps = bddFacade.getApps();
         }
-       // searchList=paprikaApps;
-        for(PaprikaApp application:paprikaApps){
-            list.getItems().add(new DefaultMedia(application.getName(),"Catégorie: "+ application.getCategory()));
+        // searchList=paprikaApps;
+        for (PaprikaApp application : paprikaApps) {
+            list.getItems().add(new DefaultMedia(application.getName(), "Catégorie: " + application.getCategory()));
 
         }
         hBox.setAlignment(Pos.CENTER);
-        vBox.getChildren().addAll(hBox,list);
+        vBox.getChildren().addAll(hBox, list);
         vBox.setPrefWidth(500);
         vBox.setMaxWidth(500);
         hBox.translateXProperty().bind(vBox.widthProperty().subtract(hBox.widthProperty()).divide(2));
@@ -988,16 +1003,16 @@ public class SimpleViewAppDemo1 {
         view.setCenterNode(vBox);
 
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
-            String text=newValue;
+            String text = newValue;
             ArrayList<PaprikaApp> searchList1 = new ArrayList<PaprikaApp>();
-            for(PaprikaApp application: paprikaApps){
-                if(application.getName().toLowerCase().contains(text.toLowerCase())){
+            for (PaprikaApp application : paprikaApps) {
+                if (application.getName().toLowerCase().contains(text.toLowerCase())) {
                     searchList1.add(application);
                 }
             }
             list.getItems().clear();
-            for(PaprikaApp application:searchList1){
-                list.getItems().add(new DefaultMedia(application.getName(),"Catégorie: "+ application.getCategory()));
+            for (PaprikaApp application : searchList1) {
+                list.getItems().add(new DefaultMedia(application.getName(), "Catégorie: " + application.getCategory()));
 
             }
         });
@@ -1005,16 +1020,16 @@ public class SimpleViewAppDemo1 {
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                String text=textField.getText().toString();
+                String text = textField.getText().toString();
                 ArrayList<PaprikaApp> searchList = new ArrayList<PaprikaApp>();
-                for(PaprikaApp application: paprikaApps){
-                    if(application.getName().toLowerCase().contains(text.toLowerCase())){
+                for (PaprikaApp application : paprikaApps) {
+                    if (application.getName().toLowerCase().contains(text.toLowerCase())) {
                         searchList.add(application);
                     }
                 }
                 list.getItems().clear();
-                for(PaprikaApp application:searchList){
-                    list.getItems().add(new DefaultMedia(application.getName(),"Catégorie: "+ application.getCategory()));
+                for (PaprikaApp application : searchList) {
+                    list.getItems().add(new DefaultMedia(application.getName(), "Catégorie: " + application.getCategory()));
 
                 }
 
@@ -1044,7 +1059,7 @@ public class SimpleViewAppDemo1 {
     }
 
 
-    private static void showChooseAntipatternDataset(){
+    private static void showChooseAntipatternDataset() {
         final ToggleGroup group = new ToggleGroup();
 
         RadioButton rb1 = new JFXRadioButton("BLOB");
@@ -1068,7 +1083,7 @@ public class SimpleViewAppDemo1 {
         rb1.getStyleClass().add("red-radio-button");
         rb1.setToggleGroup(group);
         rb1.setSelected(true);
-        rb1.setPadding(new Insets(10,10,10,20));
+        rb1.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb2 = new JFXRadioButton("Long Method");
         rb2.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -1086,7 +1101,7 @@ public class SimpleViewAppDemo1 {
 
         rb2.setUserData("Long Method");
         rb2.setToggleGroup(group);
-        rb2.setPadding(new Insets(10,10,10,20));
+        rb2.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb3 = new JFXRadioButton("Swiss Army Knife");
         rb3.setUserData("Swiss Army Knife");
         rb3.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -1103,7 +1118,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb3.setToggleGroup(group);
-        rb3.setPadding(new Insets(10,10,10,20));
+        rb3.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb4 = new JFXRadioButton("Complex Class");
         rb4.setUserData("Complex Class");
         rb4.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -1120,7 +1135,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb4.setToggleGroup(group);
-        rb4.setPadding(new Insets(10,10,10,20));
+        rb4.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb5 = new JFXRadioButton("Ignoring Low-Memory Warnings");
         rb5.setUserData("Ignoring Low-Memory Warnings");
         rb5.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -1137,7 +1152,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb5.setToggleGroup(group);
-        rb5.setPadding(new Insets(10,10,10,20));
+        rb5.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb6 = new JFXRadioButton("Massive View Controller");
         rb6.setUserData("Massive View Controller");
         rb6.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -1154,7 +1169,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb6.setToggleGroup(group);
-        rb6.setPadding(new Insets(10,10,10,20));
+        rb6.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb7 = new JFXRadioButton("Blocking the Main-Thread");
         rb7.setUserData("Blocking the Main-Thread");
         rb7.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -1171,7 +1186,7 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb7.setToggleGroup(group);
-        rb7.setPadding(new Insets(10,10,10,20));
+        rb7.setPadding(new Insets(10, 10, 10, 20));
         JFXRadioButton rb8 = new JFXRadioButton("VIPER");
         rb8.setUserData("VIPER");
         rb8.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -1188,15 +1203,15 @@ public class SimpleViewAppDemo1 {
             }
         });
         rb8.setToggleGroup(group);
-        rb8.setPadding(new Insets(10,10,40,20));
+        rb8.setPadding(new Insets(10, 10, 40, 20));
 
         VBox vBox = new VBox();
         Label lblStyle = LabelBuilder.create().text("Le patron / anti-patron à détecter").styleClass("labelStyleClass").build();
         lblStyle.setStyle("-fx-font-size:22; -fx-font-family: 'Museo Slab 500';");
 
-        lblStyle.setPadding(new Insets(25,10,25,0));
+        lblStyle.setPadding(new Insets(25, 10, 25, 0));
 
-        vBox.setPadding(new Insets(10,10,10,100));
+        vBox.setPadding(new Insets(10, 10, 10, 100));
         vBox.getChildren().addAll(lblStyle);
         vBox.getChildren().addAll(rb1);
         vBox.getChildren().addAll(rb2);
@@ -1207,14 +1222,14 @@ public class SimpleViewAppDemo1 {
         vBox.getChildren().addAll(rb7);
         vBox.getChildren().addAll(rb8);
 
-        VBox vBox1 =new VBox();
+        VBox vBox1 = new VBox();
         vBox1.getChildren().add(checkBox2);
-        vBox1.setPadding(new Insets(20,0,0,0));
+        vBox1.setPadding(new Insets(20, 0, 0, 0));
         vBox.getChildren().addAll(checkBox, vBox1);
 
-        Button button=new Button("Analyser");
+        Button button = new Button("Analyser");
         HBox hBox = new HBox();
-        hBox.setPadding(new Insets(30,10,10,200));
+        hBox.setPadding(new Insets(30, 10, 10, 200));
         hBox.getChildren().add(button);
 
         vBox.getChildren().addAll(hBox);
@@ -1225,7 +1240,7 @@ public class SimpleViewAppDemo1 {
                 String antipatttern = group.getSelectedToggle().getUserData().toString();
                 boolean fuzzy = checkBox.isSelected();
                 boolean csv = checkBox2.isSelected();
-                showAnalysisResultsDataset(antipatttern,csv,fuzzy);
+                showAnalysisResultsDataset(antipatttern, csv, fuzzy);
 
             }
         });
@@ -1246,35 +1261,31 @@ public class SimpleViewAppDemo1 {
     }
 
 
-    private static void showAnalysisResultsDataset(String antipattern,boolean csv, boolean fuzzy){
+    private static void showAnalysisResultsDataset(String antipattern, boolean csv, boolean fuzzy) {
         //Send Queries
-        if(!fuzzy) {
+        if (!fuzzy) {
             ArrayList<DatasetSimpleLine> lines;
-            lines=bddFacade.detectAntipatternDataset(antipattern, csv);
+            lines = bddFacade.detectAntipatternDataset(antipattern, csv);
 
-            if(lines.size()!=0)
-            {
-                if(lines.get(0).getClassName().equals("")){
-                    if(lines.get(0).getApplicationName().equals("")){
-                        showOneColumnDataset(lines,antipattern);
-                    }else
-                    {
-                        showTwoColumnsDataset(lines,antipattern);
+            if (lines.size() != 0) {
+                if (lines.get(0).getClassName().equals("")) {
+                    if (lines.get(0).getApplicationName().equals("")) {
+                        showOneColumnDataset(lines, antipattern);
+                    } else {
+                        showTwoColumnsDataset(lines, antipattern);
                     }
 
-                }else {
-                   showThreeColumnsDataset(lines,antipattern);
+                } else {
+                    showThreeColumnsDataset(lines, antipattern);
 
                 }
 
 
-
-
-            }else{
-                Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+"  détectée.").styleClass("labelStyleClass").build();
+            } else {
+                Label label = LabelBuilder.create().text("Aucune instance de " + antipattern + "  détectée.").styleClass("labelStyleClass").build();
                 label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
                 WorkbenchView view = new WorkbenchView();
-                VBox vBox=new VBox();
+                VBox vBox = new VBox();
                 vBox.getChildren().add(label);
                 vBox.setAlignment(Pos.CENTER);
                 //   label.setPadding(new Insets(0,0,0,250));
@@ -1283,29 +1294,25 @@ public class SimpleViewAppDemo1 {
                 app.setWorkbench(view);
                 app.clearGlobalActions();
             }
-        }
-       else{
+        } else {
             ArrayList<DatasetFuzzyLine> lines;
-            lines = bddFacade.detectAntipatternFuzzyDataset(antipattern,csv);
-            if(lines.size()!=0)
-            {
-                if(lines.get(0).getClassName().equals("")){
+            lines = bddFacade.detectAntipatternFuzzyDataset(antipattern, csv);
+            if (lines.size() != 0) {
+                if (lines.get(0).getClassName().equals("")) {
 
-                    showFuzzyOneColumnTableDataset(lines,antipattern);
+                    showFuzzyOneColumnTableDataset(lines, antipattern);
 
-                }else {
-                    showFuzzyTwoColumnsTableDataset(lines,antipattern);
+                } else {
+                    showFuzzyTwoColumnsTableDataset(lines, antipattern);
 
                 }
 
 
-
-
-            }else{
-                Label label= LabelBuilder.create().text("Aucune instance de "+antipattern+"  détectée.").styleClass("labelStyleClass").build();
+            } else {
+                Label label = LabelBuilder.create().text("Aucune instance de " + antipattern + "  détectée.").styleClass("labelStyleClass").build();
                 label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
                 WorkbenchView view = new WorkbenchView();
-                VBox vBox=new VBox();
+                VBox vBox = new VBox();
                 vBox.getChildren().add(label);
                 vBox.setAlignment(Pos.CENTER);
                 //   label.setPadding(new Insets(0,0,0,250));
@@ -1317,7 +1324,7 @@ public class SimpleViewAppDemo1 {
         }
     }
 
-    public static void showTwoColumnsDataset( ArrayList<DatasetSimpleLine> lines, String antipattern) {
+    public static void showTwoColumnsDataset(ArrayList<DatasetSimpleLine> lines, String antipattern) {
         TableView<DatasetSimpleLine> table = new TableView<DatasetSimpleLine>();
         table.setEditable(false);
         TableColumn methodCol = new TableColumn("Classe");
@@ -1328,8 +1335,8 @@ public class SimpleViewAppDemo1 {
         table.setMinWidth(600);
         table.setMaxWidth(600);
         table.setPrefWidth(600);
-        ScrollPane scrollPane=new ScrollPane();
-        scrollPane.setPadding(new Insets(20,0,0,0));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPadding(new Insets(20, 0, 0, 0));
         ObservableList<DatasetSimpleLine> observableList = FXCollections.observableList(lines);
         methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
         classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("applicationName"));
@@ -1339,12 +1346,12 @@ public class SimpleViewAppDemo1 {
 
         table.getColumns().addAll(methodCol, classCol);
         //System.out.println("pss"+table.getItems());
-        VBox vBox=new VBox();
-        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées ").styleClass("labelStyleClass").build();
+        VBox vBox = new VBox();
+        Label label = LabelBuilder.create().text("Les instances de " + antipattern + " détectées ").styleClass("labelStyleClass").build();
         label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-        label.setPadding(new Insets(0,0,13,0));
+        label.setPadding(new Insets(0, 0, 13, 0));
         //  table.setPadding(new Insets(50,20,20,20));
-        vBox.getChildren().addAll(label,table);
+        vBox.getChildren().addAll(label, table);
         vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
         vBox.setAlignment(Pos.CENTER);
         vBox.setMinWidth(800);
@@ -1362,36 +1369,36 @@ public class SimpleViewAppDemo1 {
 
     }
 
-    public static void showThreeColumnsDataset( ArrayList<DatasetSimpleLine> lines, String antipattern) {
+    public static void showThreeColumnsDataset(ArrayList<DatasetSimpleLine> lines, String antipattern) {
         TableView<DatasetSimpleLine> table = new TableView<DatasetSimpleLine>();
         table.setEditable(false);
         TableColumn methodCol = new TableColumn("Classe");
         methodCol.setMinWidth(350);
         TableColumn classCol = new TableColumn("Application");
         classCol.setMinWidth(200);
-        TableColumn applicationCol= new TableColumn("Méthode");
+        TableColumn applicationCol = new TableColumn("Méthode");
         applicationCol.setMinWidth(350);
         table.getStyleClass().add("my-table");
         table.setMinWidth(800);
         table.setMaxWidth(1000);
         table.setPrefWidth(800);
-        ScrollPane scrollPane=new ScrollPane();
-        scrollPane.setPadding(new Insets(20,0,0,0));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPadding(new Insets(20, 0, 0, 0));
         ObservableList<DatasetSimpleLine> observableList = FXCollections.observableList(lines);
         methodCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("instanceName"));
         classCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, String>("applicationName"));
-         applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
+        applicationCol.setCellValueFactory(new PropertyValueFactory<SimpleLine, Double>("className"));
 
         table.setItems(observableList);
 
         table.getColumns().addAll(applicationCol, methodCol, classCol);
         //System.out.println("pss"+table.getItems());
-        VBox vBox=new VBox();
-        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées ").styleClass("labelStyleClass").build();
+        VBox vBox = new VBox();
+        Label label = LabelBuilder.create().text("Les instances de " + antipattern + " détectées ").styleClass("labelStyleClass").build();
         label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-        label.setPadding(new Insets(0,0,13,0));
+        label.setPadding(new Insets(0, 0, 13, 0));
         //  table.setPadding(new Insets(50,20,20,20));
-        vBox.getChildren().addAll(label,table);
+        vBox.getChildren().addAll(label, table);
         vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
         vBox.setAlignment(Pos.CENTER);
         vBox.setMinWidth(800);
@@ -1406,7 +1413,8 @@ public class SimpleViewAppDemo1 {
         app.setWorkbench(view);
         app.clearGlobalActions();
     }
-    private static void showFuzzyOneColumnTableDataset(ArrayList<DatasetFuzzyLine> lines, String antipattern){
+
+    private static void showFuzzyOneColumnTableDataset(ArrayList<DatasetFuzzyLine> lines, String antipattern) {
         TableView<DatasetFuzzyLine> table = new TableView<>();
         table.setEditable(false);
         TableColumn methodCol = new TableColumn("Classe");
@@ -1420,8 +1428,8 @@ public class SimpleViewAppDemo1 {
         table.setMinWidth(600);
         table.setMaxWidth(1000);
         table.setPrefWidth(750);
-        ScrollPane scrollPane=new ScrollPane();
-        scrollPane.setPadding(new Insets(50,0,0,0));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPadding(new Insets(50, 0, 0, 0));
 
         ObservableList<DatasetFuzzyLine> observableList = FXCollections.observableList(lines);
         methodCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, String>("instanceName"));
@@ -1430,15 +1438,15 @@ public class SimpleViewAppDemo1 {
 
         table.setItems(observableList);
 
-        table.getColumns().addAll(methodCol, appCol,classCol);
+        table.getColumns().addAll(methodCol, appCol, classCol);
         table.getSortOrder().add(classCol);
         //System.out.println("pss"+table.getItems());
-        VBox vBox=new VBox();
-        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées").styleClass("labelStyleClass").build();
+        VBox vBox = new VBox();
+        Label label = LabelBuilder.create().text("Les instances de " + antipattern + " détectées").styleClass("labelStyleClass").build();
         label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-        label.setPadding(new Insets(0,0,25,0));
+        label.setPadding(new Insets(0, 0, 25, 0));
         //  table.setPadding(new Insets(50,20,20,20));
-        vBox.getChildren().addAll(label,table);
+        vBox.getChildren().addAll(label, table);
         vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
         vBox.setAlignment(Pos.CENTER);
         vBox.setMinWidth(800);
@@ -1454,7 +1462,7 @@ public class SimpleViewAppDemo1 {
         app.clearGlobalActions();
     }
 
-    private static void showFuzzyTwoColumnsTableDataset(ArrayList<DatasetFuzzyLine> lines, String antipattern){
+    private static void showFuzzyTwoColumnsTableDataset(ArrayList<DatasetFuzzyLine> lines, String antipattern) {
         TableView<DatasetFuzzyLine> table = new TableView<>();
         table.setEditable(false);
         TableColumn methodCol = new TableColumn("Méthode");
@@ -1470,8 +1478,8 @@ public class SimpleViewAppDemo1 {
         table.setMinWidth(900);
         table.setMaxWidth(1100);
         table.setPrefWidth(1100);
-        ScrollPane scrollPane=new ScrollPane();
-        scrollPane.setPadding(new Insets(50,0,0,0));
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPadding(new Insets(50, 0, 0, 0));
 
         ObservableList<DatasetFuzzyLine> observableList = FXCollections.observableList(lines);
         methodCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, String>("instanceName"));
@@ -1480,15 +1488,15 @@ public class SimpleViewAppDemo1 {
         appCol.setCellValueFactory(new PropertyValueFactory<DatasetFuzzyLine, Double>("applicationName"));
         table.setItems(observableList);
 
-        table.getColumns().addAll(methodCol,secCol,appCol,classCol);
+        table.getColumns().addAll(methodCol, secCol, appCol, classCol);
         table.getSortOrder().add(classCol);
         //System.out.println("pss"+table.getItems());
-        VBox vBox=new VBox();
-        Label label= LabelBuilder.create().text("Les instances de "+antipattern+" détectées").styleClass("labelStyleClass").build();
+        VBox vBox = new VBox();
+        Label label = LabelBuilder.create().text("Les instances de " + antipattern + " détectées").styleClass("labelStyleClass").build();
         label.setStyle("-fx-font-size:18; -fx-font-family: 'Museo Slab 500';");
-        label.setPadding(new Insets(0,0,25,0));
+        label.setPadding(new Insets(0, 0, 25, 0));
         //  table.setPadding(new Insets(50,20,20,20));
-        vBox.getChildren().addAll(label,table);
+        vBox.getChildren().addAll(label, table);
         vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
         vBox.setAlignment(Pos.CENTER);
         vBox.setMinWidth(800);
@@ -1506,87 +1514,190 @@ public class SimpleViewAppDemo1 {
 
     }
 
-    private static void showStatistics(){
+    private static void showStatistics() {
 
-        final  String blob = "BLOB";
-        final  String cc = "Complex Class";
-        final  String sak = "Swiss Army Knife";
-        final  String lm = "Long Method";
-        final  String ilm = "Ignoring Low Memory";
-        final  String mvc = "Massive View Controller";
-        final  String csc = "Blocking the Main Thread";
-        final  String viper = "VIPER";
+        Action ajouter = new Action("Ajouter");
+        final Cursor oldCursor = app.getScene().getCursor();
+        app.getScene().setCursor(Cursor.WAIT);
+        WorkbenchView view = new WorkbenchView();
+        VBox vBox = new VBox();
+        VBox hBox = new VBox();
+        Label label = new Label("Traitment en cours");
+        label.setStyle("-fx-font-size: 28;");
+        hBox.getChildren().add(label);
+        SimpleImageView simpleImageView = new SimpleImageView();
+        simpleImageView.setImage(SimpleViewAppDemo1.class.getResource("done.png").toExternalForm());
+        simpleImageView.setMaxSize(100, 80);
 
-
+        JFXProgressBar jfxBar = new JFXProgressBar();
+        jfxBar.setPrefWidth(500);
+        JFXProgressBar jfxBarInf = new JFXProgressBar();
+        jfxBarInf.setPrefWidth(500);
+        jfxBarInf.setProgress(-1.0f);
+        Timeline timeline;
+        JFXProgressBar bar = new JFXProgressBar();
+        timeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(bar.progressProperty(), 0), new KeyValue(jfxBar.progressProperty(), 0)),
+                new KeyFrame(Duration.seconds(2), new KeyValue(bar.progressProperty(), 1), new KeyValue(jfxBar.progressProperty(), 1)));
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();
+        //hBox.getChildren().add(button);
+        hBox.setPadding(new Insets(0, 0, 30, 0));
+        hBox.setSpacing(10);
+        hBox.setAlignment(Pos.CENTER);
+        HBox hBox1 = new HBox();
+        hBox1.setAlignment(Pos.CENTER);
+        hBox1.setSpacing(10);
+        hBox1.getChildren().addAll(jfxBar);
+        vBox.getChildren().addAll(hBox, hBox1);
+        //,list);
+        vBox.setPadding(new Insets(0, 0, 0, 0));
+        // hBox.translateXProperty().bind(vBox.widthProperty().subtract(hBox.widthProperty()).divide(2));
+        vBox.setAlignment(Pos.CENTER);
+        //vBox.translateXProperty().bind(view.widthProperty().subtract(vBox.widthProperty()).divide(2));
+        view.setCenterNode(vBox);
+        view.setPadding(new Insets(0, 0, 0, 0));
+        app.setWorkbench(view);
+        app.clearGlobalActions();
         final CategoryAxis xAxis = new CategoryAxis();
         final NumberAxis yAxis = new NumberAxis();
-        final BarChart<String,Number> bc =
-                new BarChart<String,Number>(xAxis,yAxis);
+
+        final BarChart<String, Number> bc =
+                new BarChart<String, Number>(xAxis, yAxis);
 
         bc.setTitle("Statistiques par rapport aux applications");
         xAxis.setLabel("Antipatron");
         yAxis.setLabel("Pourcentage (%) ");
-
         XYChart.Series series1 = new XYChart.Series();
-        ArrayList<Double> ratioBlob=bddFacade.calculateRatioBLOB();
-        ArrayList<Double> ratioCC=bddFacade.calculateRatioCC();
-        ArrayList<Double> ratioSAK=bddFacade.calculateRatioSAK();
-        ArrayList<Double> ratioILMW=bddFacade.calculateRatioILMW();
-        ArrayList<Double> ratioLM=bddFacade.calculateRatioLM();
-        ArrayList<Double> ratioMVC= bddFacade.calculateRatioMVC();
-        ArrayList<Double> ratioVIPER=bddFacade.calculateRatioVIPER();
-        ArrayList<Double> ratioCSC=bddFacade.calculateRatioCSC();
-        series1.setName("Sans logique floue");
-        series1.getData().add(new XYChart.Data(blob, ratioBlob.get(0)));
-        series1.getData().add(new XYChart.Data(cc ,ratioCC.get(0)));
-        series1.getData().add(new XYChart.Data(sak, ratioSAK.get(0)));
-        series1.getData().add(new XYChart.Data(ilm, ratioILMW.get(0)));
-        series1.getData().add(new XYChart.Data(lm, ratioLM.get(0)));
-        series1.getData().add(new XYChart.Data(mvc, ratioMVC.get(0)));
-        series1.getData().add(new XYChart.Data(viper, ratioVIPER.get(0)));
-        series1.getData().add(new XYChart.Data(csc, ratioCSC.get(0)));
-
-
-
-       final CategoryAxis xAxis1 = new CategoryAxis();
+        XYChart.Series series1Fuzzy = new XYChart.Series();
+        final CategoryAxis xAxis1 = new CategoryAxis();
         final NumberAxis yAxis1 = new NumberAxis();
-        final BarChart<String,Number> bc1 =
-                new BarChart<String,Number>(xAxis1,yAxis1);
+        final BarChart<String, Number> bc1 =
+                new BarChart<String, Number>(xAxis1, yAxis1);
         bc1.setTitle("Statistiques par rapport aux classes");
         xAxis1.setLabel("Antipatrons");
         yAxis1.setLabel("Pourcentage (%)");
         VBox firstVbox = new VBox();
         firstVbox.getChildren().add(bc);
-        firstVbox.setPadding(new Insets(50,50,50,50));
+        firstVbox.setPadding(new Insets(50, 50, 50, 50));
         XYChart.Series series2 = new XYChart.Series();
-        series2.setName("Sans logique floue");
-        series2.getData().add(new XYChart.Data(blob, ratioBlob.get(1)));
-        series2.getData().add(new XYChart.Data(cc ,ratioCC.get(1)));
-        series2.getData().add(new XYChart.Data(sak, ratioSAK.get(1)));
-        series2.getData().add(new XYChart.Data(ilm, ratioILMW.get(1)));
-        series2.getData().add(new XYChart.Data(lm, ratioLM.get(1)));
-        series2.getData().add(new XYChart.Data(mvc, ratioMVC.get(1)));
-        VBox vBox=new VBox();
-        VBox secondVBox= new VBox();
-        secondVBox.setPadding(new Insets(50,50,50,50));
+        XYChart.Series series2Fuzzy = new XYChart.Series();
+
+        VBox vBoxbig = new VBox();
+        VBox secondVBox = new VBox();
+        secondVBox.setPadding(new Insets(50, 50, 50, 50));
         secondVBox.getChildren().add(bc1);
-        vBox.getChildren().addAll(firstVbox,secondVBox);
-        bc.setPrefWidth(700);
-        bc.setMinWidth(700);
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setContent(vBox);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        vBox.translateXProperty().bind(scrollPane.widthProperty().subtract(vBox.widthProperty()).divide(2));
-        vBox.setAlignment(Pos.CENTER);
-        System.out.println("nb==  "+ bddFacade.calculateNumberOfApps());
-        bc.getData().addAll(series1);
-        bc1.getData().addAll(series2);
-        //, series2, series3);
-        WorkbenchView view = new WorkbenchView();
-        view.setCenterNode(scrollPane);
-        app.setWorkbench(view);
-        app.clearGlobalActions();
+        vBoxbig.setMinWidth(950);
+        vBoxbig.getChildren().addAll(firstVbox, secondVBox);
+
+        final Service<Void> calculateService = new Service<Void>() {
+
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+
+                    @Override
+                    protected Void call() throws Exception {
+
+                        final String blob = "BLOB";
+                        final String cc = "Complex Class";
+                        final String sak = "Swiss Army Knife";
+                        final String lm = "Long Method";
+                        final String ilm = "Ignoring Low Memory";
+                        final String mvc = "Massive View Controller";
+                        final String csc = "Blocking the Main Thread";
+                        final String viper = "VIPER";
+                        ArrayList<Double> ratioBlob = bddFacade.calculateRatioBLOB();
+                        ArrayList<Double> ratioCC = bddFacade.calculateRatioCC();
+                        ArrayList<Double> ratioSAK = bddFacade.calculateRatioSAK();
+                        ArrayList<Double> ratioLM = bddFacade.calculateRatioLM();
+                        ArrayList<Double> ratioMVC = bddFacade.calculateRatioMVC();
+                        ArrayList<Double> ratioBlobFuzzy = bddFacade.calculateRatioBLOBFuzzy();
+                        ArrayList<Double> ratioCCFuzzy = bddFacade.calculateRatioCCFuzzy();
+                        ArrayList<Double> ratioSAKFuzzy = bddFacade.calculateRatioSAKFuzzy();
+                        ArrayList<Double> ratioLMFuzzy = bddFacade.calculateRatioLMFuzzy();
+                        ArrayList<Double> ratioMVCFuzzy = bddFacade.calculateRatioMVCFuzzy();
+                        ArrayList<Double> ratioILMW = bddFacade.calculateRatioILMW();
+                        ArrayList<Double> ratioVIPER = bddFacade.calculateRatioVIPER();
+                        ArrayList<Double> ratioCSC = bddFacade.calculateRatioCSC();
+                        series1.setName("Sans logique floue");
+                        series1.getData().add(new XYChart.Data(blob, ratioBlob.get(0)));
+                        series1.getData().add(new XYChart.Data(cc, ratioCC.get(0)));
+                        series1.getData().add(new XYChart.Data(sak, ratioSAK.get(0)));
+                        series1.getData().add(new XYChart.Data(ilm, ratioILMW.get(0)));
+                        series1.getData().add(new XYChart.Data(lm, ratioLM.get(0)));
+                        series1.getData().add(new XYChart.Data(mvc, ratioMVC.get(0)));
+
+                        series1.getData().add(new XYChart.Data(viper, ratioVIPER.get(0)));
+                        series1.getData().add(new XYChart.Data(csc, ratioCSC.get(0)));
+
+                        series1Fuzzy.setName("Avec logique floue");
+                        series1Fuzzy.getData().add(new XYChart.Data(blob, ratioBlobFuzzy.get(0)));
+                        series1Fuzzy.getData().add(new XYChart.Data(cc, ratioCCFuzzy.get(0)));
+                        series1Fuzzy.getData().add(new XYChart.Data(sak, ratioSAKFuzzy.get(0)));
+                        series1Fuzzy.getData().add(new XYChart.Data(lm, ratioLMFuzzy.get(0)));
+                        series1Fuzzy.getData().add(new XYChart.Data(mvc, ratioMVCFuzzy.get(0)));
+
+
+                        series2.setName("Sans logique floue");
+                        series2.getData().add(new XYChart.Data(blob, ratioBlob.get(1)));
+                        series2.getData().add(new XYChart.Data(cc, ratioCC.get(1)));
+                        series2.getData().add(new XYChart.Data(sak, ratioSAK.get(1)));
+                        //series2.getData().add(new XYChart.Data(ilm, ratioILMW.get(1)));
+                        series2.getData().add(new XYChart.Data(lm, ratioLM.get(1)));
+                        series2.getData().add(new XYChart.Data(mvc, ratioMVC.get(1)));
+
+
+                        series2Fuzzy.setName("Avec logique floue");
+                        series2Fuzzy.getData().add(new XYChart.Data(blob, ratioBlobFuzzy.get(1)));
+                        series2Fuzzy.getData().add(new XYChart.Data(cc, ratioCCFuzzy.get(1)));
+                        series2Fuzzy.getData().add(new XYChart.Data(sak, ratioSAKFuzzy.get(1)));
+                        //series2.getData().add(new XYChart.Data(ilm, ratioILMW.get(1)));
+                        series2Fuzzy.getData().add(new XYChart.Data(lm, ratioLMFuzzy.get(1)));
+                        series2Fuzzy.getData().add(new XYChart.Data(mvc, ratioMVCFuzzy.get(1)));
+                        //bc.setPrefWidth(700);
+                        //bc.setMinWidth(700);
+                        bc.getData().addAll(series1, series1Fuzzy);
+                        bc1.getData().addAll(series2, series2Fuzzy);
+
+                        //bddFacade.addApp(path,appName,categoryName,appKey);
+                        return null;
+                    }
+                };
+            }
+        };
+        calculateService.stateProperty().addListener(new ChangeListener<Worker.State>() {
+
+            @Override
+            public void changed(ObservableValue<? extends Worker.State> observableValue, Worker.State oldValue, Worker.State newValue) {
+                switch (newValue) {
+                    case FAILED:
+                        System.out.print("Error");
+                    case CANCELLED:
+                    case SUCCEEDED:
+                        app.getScene().setCursor(oldCursor);
+                        ScrollPane scrollPane = new ScrollPane();
+                        scrollPane.setContent(vBoxbig);
+                        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                        vBoxbig.translateXProperty().bind(scrollPane.widthProperty().subtract(vBoxbig.widthProperty()).divide(2));
+                        vBoxbig.setAlignment(Pos.CENTER);
+                        System.out.println("nb==  " + bddFacade.calculateNumberOfApps());
+                        //, series2, series3);
+                        WorkbenchView view = new WorkbenchView();
+                        view.setCenterNode(scrollPane);
+                        app.setWorkbench(view);
+                        app.clearGlobalActions();
+                        break;
+                }
+            }
+        });
+
+        calculateService.start();
+
 
     }
+
+
 }
+

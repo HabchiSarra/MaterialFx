@@ -1,12 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" inherit-compiler-output="true">
-    <exclude-output />
+<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/target/classes" />
+    <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
+      <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="antlr-runtime-3.5.2" level="project" />
+    <orderEntry type="library" name="antlr4-annotations-4.2.2" level="project" />
+    <orderEntry type="library" name="antlr4-runtime-4.2.2" level="project" />
+    <orderEntry type="library" name="hamcrest-core-1.3" level="project" />
+    <orderEntry type="library" name="jFuzzyLogic" level="project" />
+    <orderEntry type="library" name="org.abego.treelayout.core-1.0.1" level="project" />
+    <orderEntry type="library" name="ST4-4.0.8" level="project" />
+    <orderEntry type="library" name="NEO4J_JAVA_LIB" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$USER_HOME$/Desktop/jfoenix.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>
-

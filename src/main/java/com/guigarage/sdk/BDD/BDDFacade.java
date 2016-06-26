@@ -550,6 +550,7 @@ public class BDDFacade {
         }
     }
 */
+
     public ArrayList<Double> calculateRatioBLOB(){
         BLOBQuery blobQuery = BLOBQuery.createBLOBQuery(queryEngine);
         int nbCl=0, nbApp =0;
@@ -560,7 +561,17 @@ public class BDDFacade {
         doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
         doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
         return doublesArrayList;
-
+    }
+    public ArrayList<Double> calculateRatioBLOBFuzzy(){
+        BLOBQuery blobQuery = BLOBQuery.createBLOBQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = blobQuery.countFuzzy();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        return doublesArrayList;
     }
     public ArrayList<Double> calculateRatioCC(){
         CCQuery ccQuery = CCQuery.createCCQuery(queryEngine);
@@ -575,6 +586,20 @@ public class BDDFacade {
         return doublesArrayList;
 
     }
+
+    public ArrayList<Double> calculateRatioCCFuzzy(){
+        CCQuery ccQuery = CCQuery.createCCQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = ccQuery.countFuzzy();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        return doublesArrayList;
+    }
+
     public ArrayList<Double> calculateRatioSAK(){
         SAKQuery blobQuery = SAKQuery.createSAKQuery(queryEngine);
         int nbCl=0, nbApp =0;
@@ -587,6 +612,20 @@ public class BDDFacade {
         return doublesArrayList;
 
     }
+
+    public ArrayList<Double> calculateRatioSAKFuzzy(){
+        SAKQuery blobQuery = SAKQuery.createSAKQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = blobQuery.countFuzzy();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        return doublesArrayList;
+
+    }
+
     public ArrayList<Double> calculateRatioILMW(){
         ILMWQuery blobQuery = ILMWQuery.createILMWQuery(queryEngine);
         int nbCl=0, nbApp =0;
@@ -611,6 +650,20 @@ public class BDDFacade {
         return doublesArrayList;
 
     }
+
+    public ArrayList<Double> calculateRatioMVCFuzzy(){
+        MVCQuery blobQuery = MVCQuery.createMVCQuery(queryEngine);
+        int nbCl=0, nbApp =0;
+        HashMap<String,Integer> hashMap = blobQuery.countFuzzy();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        return doublesArrayList;
+
+    }
+
     public ArrayList<Double> calculateRatioLM(){
         LMQuery blobQuery = LMQuery.createLMQuery(queryEngine);
         int nbCl=0, nbApp =0,nbMeth=0;
@@ -624,6 +677,19 @@ public class BDDFacade {
         doublesArrayList.add(((double) nbMeth/(double)calculateNumberOfMethods())*100);
         return doublesArrayList;
 
+    }
+    public ArrayList<Double> calculateRatioLMFuzzy(){
+        LMQuery blobQuery = LMQuery.createLMQuery(queryEngine);
+        int nbCl=0, nbApp =0,nbMeth=0;
+        HashMap<String,Integer> hashMap = blobQuery.countFuzzy();
+        ArrayList<Double> doublesArrayList=new ArrayList<>();
+        nbCl=hashMap.get("class_cpt");
+        nbApp = hashMap.get("app_cpt");
+        nbMeth =hashMap.get("method_cpt");
+        doublesArrayList.add(((double) nbApp/ (double)calculateNumberOfApps())*100);
+        doublesArrayList.add(((double) nbCl/(double)calculateNumberOfClasses())*100);
+        doublesArrayList.add(((double) nbMeth/(double)calculateNumberOfMethods())*100);
+        return doublesArrayList;
     }
     public ArrayList<Double> calculateRatioCSC(){
         CSCQuery blobQuery = CSCQuery.createCSCQuery(queryEngine);

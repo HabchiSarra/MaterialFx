@@ -56,6 +56,7 @@ public class ILMWQuery extends Query {
         return res;
     }
 
+
     public ArrayList<DatasetSimpleLine> executeDataset(boolean csv , boolean details) throws CypherException, IOException {
         try (Transaction ignored = graphDatabaseService.beginTx()) {
             String query = "MATCH (cl:Class) WHERE HAS(cl.is_view_controller) AND NOT (cl:Class)-[:CLASS_OWNS_METHOD]->(:Method{name:'didReceiveMemoryWarning'}) RETURN cl.app_key as app_key";
