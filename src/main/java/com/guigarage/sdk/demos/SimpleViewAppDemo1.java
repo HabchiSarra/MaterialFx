@@ -1513,7 +1513,7 @@ public class SimpleViewAppDemo1 {
         WorkbenchView view = new WorkbenchView();
         VBox vBox = new VBox();
         VBox hBox = new VBox();
-        Label label = new Label("Calclus des Statistiques en cours");
+        Label label = new Label("Calclu des Statistiques en cours");
         label.setStyle("-fx-font-size: 28;");
         hBox.getChildren().add(label);
         SimpleImageView simpleImageView = new SimpleImageView();
