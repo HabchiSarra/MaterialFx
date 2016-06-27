@@ -175,19 +175,10 @@ public class SimpleViewAppDemo1 {
             simpleImageView.setImage(SimpleViewAppDemo1.class.getResource("done.png").toExternalForm());
             simpleImageView.setMaxSize(100, 80);
 
-            JFXProgressBar jfxBar = new JFXProgressBar();
-            jfxBar.setPrefWidth(500);
+
             JFXProgressBar jfxBarInf = new JFXProgressBar();
             jfxBarInf.setPrefWidth(500);
             jfxBarInf.setProgress(-1.0f);
-            Timeline timeline;
-            JFXProgressBar bar = new JFXProgressBar();
-            ;
-            timeline = new Timeline(
-                    new KeyFrame(Duration.ZERO, new KeyValue(bar.progressProperty(), 0), new KeyValue(jfxBar.progressProperty(), 0)),
-                    new KeyFrame(Duration.seconds(2), new KeyValue(bar.progressProperty(), 1), new KeyValue(jfxBar.progressProperty(), 1)));
-            timeline.setCycleCount(Timeline.INDEFINITE);
-            timeline.play();
             Button button = new Button("Analyser");
             //hBox.getChildren().add(button);
             hBox.setPadding(new Insets(0, 0, 30, 0));
@@ -196,7 +187,7 @@ public class SimpleViewAppDemo1 {
             HBox hBox1 = new HBox();
             hBox1.setAlignment(Pos.CENTER);
             hBox1.setSpacing(10);
-            hBox1.getChildren().addAll(jfxBar);
+            hBox1.getChildren().addAll(jfxBarInf);
             vBox.getChildren().addAll(hBox, hBox1);
             //,list);
             vBox.setPadding(new Insets(0, 0, 0, 0));
@@ -1522,25 +1513,16 @@ public class SimpleViewAppDemo1 {
         WorkbenchView view = new WorkbenchView();
         VBox vBox = new VBox();
         VBox hBox = new VBox();
-        Label label = new Label("Traitment en cours");
+        Label label = new Label("Calclus des Statistiques en cours");
         label.setStyle("-fx-font-size: 28;");
         hBox.getChildren().add(label);
         SimpleImageView simpleImageView = new SimpleImageView();
         simpleImageView.setImage(SimpleViewAppDemo1.class.getResource("done.png").toExternalForm());
         simpleImageView.setMaxSize(100, 80);
 
-        JFXProgressBar jfxBar = new JFXProgressBar();
-        jfxBar.setPrefWidth(500);
         JFXProgressBar jfxBarInf = new JFXProgressBar();
         jfxBarInf.setPrefWidth(500);
         jfxBarInf.setProgress(-1.0f);
-        Timeline timeline;
-        JFXProgressBar bar = new JFXProgressBar();
-        timeline = new Timeline(
-                new KeyFrame(Duration.ZERO, new KeyValue(bar.progressProperty(), 0), new KeyValue(jfxBar.progressProperty(), 0)),
-                new KeyFrame(Duration.seconds(2), new KeyValue(bar.progressProperty(), 1), new KeyValue(jfxBar.progressProperty(), 1)));
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();
         //hBox.getChildren().add(button);
         hBox.setPadding(new Insets(0, 0, 30, 0));
         hBox.setSpacing(10);
@@ -1548,7 +1530,7 @@ public class SimpleViewAppDemo1 {
         HBox hBox1 = new HBox();
         hBox1.setAlignment(Pos.CENTER);
         hBox1.setSpacing(10);
-        hBox1.getChildren().addAll(jfxBar);
+        hBox1.getChildren().addAll(jfxBarInf);
         vBox.getChildren().addAll(hBox, hBox1);
         //,list);
         vBox.setPadding(new Insets(0, 0, 0, 0));
